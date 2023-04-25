@@ -12,7 +12,7 @@ services:
         INSTALL_NODE: "true"
         NODE_VERSION: "lts/*"
         # Please adapt to package name:
-        PACKAGE_NAME: "my_microservice"
+        PACKAGE_NAME: "ghga_validator"
         # On Linux, you may need to update USER_UID and USER_GID below if not your local UID is not 1000.
         USER_UID: 1000
         USER_GID: 1000
@@ -32,7 +32,7 @@ services:
     # define environment variables
     environment:
       # Please adapt to package name:
-      MY_MICROSERVICE_CONFIG_YAML: /workspace/.devcontainer/.dev_config.yaml
+      GHGA_VALIDATOR_CONFIG_YAML: /workspace/.devcontainer/.dev_config.yaml
       # Used by db migration:
       DB_URL: postgresql://postgres:postgres@postgresql/postgres
     # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.

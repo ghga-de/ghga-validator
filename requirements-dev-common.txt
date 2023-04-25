@@ -28,3 +28,6 @@ mkdocs-material==9.0.3
 mkdocs-material-extensions==1.1.1
 mkdocstrings==0.19.1
 mkdocstrings-python-legacy==0.2.3
+
+linkml == 1.5.0
+linkml-validator==0.4.5

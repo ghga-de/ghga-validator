@@ -13,11 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""FastAPI dependencies (used with the `Depends` feature)"""
+"""Entrypoint of the package"""
 
-from ..config import CONFIG
+from ghga_validator.cli import cli
 
 
-def get_config():
-    """Get runtime configuration."""
-    return CONFIG
+def run():
+    """Run the application (used in setup.cfg)."""
+    cli()
+
+
+if __name__ == "__main__":
+    run()
