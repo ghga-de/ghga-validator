@@ -2,4 +2,5 @@
 # but are allowed to have different content in the current repository
 
 .github/workflows/check_config_docs.yaml
-scripts/license_checker.py
+.github/workflows/check_openapi_spec.yaml
+scripts/update_openapi_docs.py

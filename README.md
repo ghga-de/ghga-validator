@@ -11,10 +11,10 @@ An extensive documentation can be found [here](...) (coming soon).
 
 ```bash
 # Install via pip
-pip install ghga-validator```
+pip install ghga_validator```
 
 # Get help
-gdevutil --help
+ghga-validator --help
 ```
 
 ## Development
