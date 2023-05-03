@@ -16,8 +16,10 @@
 
 """Validation utilities"""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
+from linkml.utils.datautils import infer_root_class
+from linkml_runtime.utils.schemaview import SchemaView
 from linkml_validator.models import ValidationReport
 from linkml_validator.validator import Validator
 
@@ -36,7 +38,7 @@ def get_validator(schema: str, plugins: List[Dict]) -> Validator:
 
 
 def validate(
-    schema: str, obj: Dict, obj_type: str, plugins: List[Dict]
+    schema: str, target_class: Optional[str], obj: Dict, plugins: List[Dict]
 ) -> ValidationReport:
     """
     Validate an object of a particular type against a given schema.
@@ -47,6 +49,20 @@ def validate(
     """
     validator = get_validator(schema=schema, plugins=plugins)
     report = validator.validate(
-        obj, target_class=obj_type, exclude_object=True, truncate_message=True
+        obj, target_class, exclude_object=True, truncate_message=True
     )
     return report
+
+
+def get_target_class(schema: str) -> Optional[str]:
+    """
+    Infer the root class from schema
+    Args:
+        schema (str): YAML schema as the string
+
+    Returns:
+        class name for root class, if found in the scheme
+    """
+    with open(schema, "r", encoding="utf8") as file:
+        input_schema = file.read()
+        return infer_root_class(SchemaView(input_schema))

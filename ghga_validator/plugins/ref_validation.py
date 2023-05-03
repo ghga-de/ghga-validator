@@ -20,7 +20,6 @@ from typing import Any, Dict, List, Optional, Union
 from linkml_runtime.utils.schemaview import ClassDefinition, SchemaView, SlotDefinition
 from linkml_validator.models import ValidationMessage, ValidationResult
 from linkml_validator.plugins.base import BasePlugin
-from linkml_validator.utils import camelcase_to_sentencecase, snakecase_to_sentencecase
 
 # pylint: disable=too-many-arguments,too-many-locals
 
@@ -109,8 +108,7 @@ class RefValidationPlugin(BasePlugin):
             ClassDefinition: class definition
 
         """
-        formatted_class_name = camelcase_to_sentencecase(class_name)
-        return self.schemaview.get_class(formatted_class_name)
+        return self.schemaview.get_class(class_name)
 
     def get_slot_def(self, class_name: str, slot_name: str) -> SlotDefinition:
         """
@@ -123,12 +121,11 @@ class RefValidationPlugin(BasePlugin):
             SlotDefinition: class definition
 
         """
-        formatted_slot_name = snakecase_to_sentencecase(slot_name)
         class_def = self.get_class_def(class_name)
         slot_usage = class_def.slot_usage
-        if formatted_slot_name in slot_usage:
-            return slot_usage[formatted_slot_name]
-        return self.schemaview.get_slot(formatted_slot_name)
+        if slot_name in slot_usage:
+            return slot_usage[slot_name]
+        return self.schemaview.get_slot(slot_name)
 
     def find_missing_refs(
         self, ref_value: Union[List[str], str], id_list: List
@@ -233,7 +230,7 @@ class RefValidationPlugin(BasePlugin):
             else:
                 id_slot = self.schemaview.get_identifier_slot(range_class)
                 id_list = self.get_id_list(
-                    json_object, target_class, range_class, id_slot.name
+                    json_object, root_class, range_class, id_slot.name
                 )
                 non_match = self.find_missing_refs(value, id_list)
                 if len(non_match) == 0:
