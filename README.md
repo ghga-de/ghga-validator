@@ -11,7 +11,7 @@ An extensive documentation can be found [here](...) (coming soon).
 
 ```bash
 # Install via pip
-pip install ghga_validator```
+pip install ghga-validator```
 
 # Get help
 ghga-validator --help
