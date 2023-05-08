@@ -15,11 +15,13 @@
 
 """Plugin for LinkML JSON Validator used for validating the non inline references"""
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from linkml_runtime.utils.schemaview import ClassDefinition, SchemaView, SlotDefinition
 from linkml_validator.models import ValidationMessage, ValidationResult
 from linkml_validator.plugins.base import BasePlugin
+
+from ghga_validator.core.utils import merge_dicts_of_list, to_list
 
 # pylint: disable=too-many-arguments,too-many-locals
 
@@ -59,7 +61,11 @@ class RefValidationPlugin(BasePlugin):
         messages = []
         valid = True
 
-        messages = self.validate_json(obj, target_class, obj, target_class, "")
+        inlined_ids = self.get_inlined_ids(obj, target_class)
+
+        messages = self.validate_json(
+            obj, target_class, obj, target_class, "", inlined_ids
+        )
         if len(messages) > 0:
             valid = False
 
@@ -176,21 +182,6 @@ class RefValidationPlugin(BasePlugin):
                 return range_class
         return None
 
-    def to_list(self, value: Any) -> List[Dict]:
-        """
-        If an value is not an instance of List of objects, transform to it
-        """
-        list_of_values = []
-        if not isinstance(value, list):
-            list_of_values = [value]
-        else:
-            list_of_values = value
-        if len(list_of_values) == 0:
-            return []
-        if not isinstance(list_of_values[0], dict):
-            return []
-        return list_of_values
-
     def validate_json(
         self,
         object_to_validate: Dict,
@@ -198,6 +189,7 @@ class RefValidationPlugin(BasePlugin):
         json_object: Dict,
         root_class: str,
         path: str,
+        inlined_ids: Dict,
     ) -> ValidationMessage:
         """
         Get slot definition.
@@ -217,24 +209,26 @@ class RefValidationPlugin(BasePlugin):
             if not range_class:
                 continue
             if self.schemaview.is_inlined(slot_def):
-                for elem in self.to_list(value):
+                for elem in to_list(value):
                     validation_msgs = self.validate_json(
                         elem,
                         range_class,
                         json_object,
                         root_class,
                         path + "->" + field,
+                        inlined_ids,
                     )
                     if len(validation_msgs) > 0:
                         messages.extend(validation_msgs)
             else:
-                id_slot = self.schemaview.get_identifier_slot(range_class)
-                id_list = self.get_id_list(
-                    json_object, root_class, range_class, id_slot.name
-                )
+                if range_class in inlined_ids:
+                    id_list = inlined_ids[range_class]
+                else:
+                    id_list = []
                 non_match = self.find_missing_refs(value, id_list)
                 if len(non_match) == 0:
                     continue
+                id_slot = self.schemaview.get_identifier_slot(range_class)
                 message = ValidationMessage(
                     severity="Error",
                     message="Unknown references in "
@@ -244,3 +238,41 @@ class RefValidationPlugin(BasePlugin):
                 )
                 messages.append(message)
         return messages
+
+    def get_inlined_ids(self, obj: Dict, target_class: str) -> Dict[str, List[str]]:
+        """Get all lists of identifies of inlined objects organized by class name
+
+        Args:
+            obj (Dict): The object to be parsed
+            target_class (str): Target class
+
+        Returns:
+            Dict[class_name, List[str]]: The dictionary containing the lists of
+            identifiers by the class name
+        """
+        inlined_ids: Dict[str, List[str]] = {}
+        for field, value in obj.items():
+            slot_def = self.get_slot_def(target_class, field)
+            range_class = self.get_range_class(slot_def)
+            if not range_class:
+                continue
+            if self.schemaview.is_inlined(slot_def):
+                id_slot = self.schemaview.get_identifier_slot(range_class)
+                if isinstance(value, list):
+                    if id_slot:
+                        id_list = [item[id_slot.name] for item in value]
+                    for item in value:
+                        inlined_ids = merge_dicts_of_list(
+                            inlined_ids, self.get_inlined_ids(item, range_class)
+                        )
+                else:
+                    if id_slot:
+                        id_list = [value[id_slot.name]]
+                    inlined_ids = merge_dicts_of_list(
+                        inlined_ids, self.get_inlined_ids(value, range_class)
+                    )
+                if range_class not in inlined_ids:
+                    inlined_ids[range_class] = id_list
+                else:
+                    inlined_ids[range_class].extend(id_list)
+        return inlined_ids

@@ -16,7 +16,7 @@
 
 """Validation utilities"""
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from linkml.utils.datautils import infer_root_class
 from linkml_runtime.utils.schemaview import SchemaView
@@ -66,3 +66,40 @@ def get_target_class(schema: str) -> Optional[str]:
     with open(schema, "r", encoding="utf8") as file:
         input_schema = file.read()
         return infer_root_class(SchemaView(input_schema))
+
+
+def to_list(value: Union[Dict, List[Dict]]) -> List[Dict]:
+    """
+    If an value is not an instance of List of objects, transform to it
+    """
+    list_of_values = []
+    if not isinstance(value, list):
+        list_of_values = [value]
+    else:
+        list_of_values = value
+    if len(list_of_values) == 0:
+        return []
+    if not isinstance(list_of_values[0], dict):
+        return []
+    return list_of_values
+
+
+def merge_dicts_of_list(
+    dict1: Dict[str, List], dict2: Dict[str, List]
+) -> Dict[str, List]:
+    """Merge two dictionaries which values are lists. Each list in the output dictionary
+    is the union of the lists for a key in the source dictionaries
+
+    Args:
+        dict1, dict2 (Dict[str, List]): dictionaries to be merged
+
+    Returns:
+        Dict[str, List]: Output dictionary
+    """
+    output_dict = dict1
+    for key in dict2:
+        if key in output_dict:
+            output_dict[key].extend(dict2[key])
+        else:
+            output_dict[key] = dict2[key]
+    return output_dict
