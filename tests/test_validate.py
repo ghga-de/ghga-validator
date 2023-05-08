@@ -13,11 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""The package provides the functionality required for the ghga_validator
-command line utility."""
-
-__version__ = "1.0.0"
-
+import os
 from pathlib import Path
 
-BASE_DIR = Path(__file__).parent.parent.resolve()
+from ghga_validator import BASE_DIR
+from ghga_validator.cli import validate_json
+from ghga_validator.core.validation import get_target_class
+
+
+def test_ref_validation():
+    """Test the validation plugin"""
+    schema = BASE_DIR / "example_data" / "example_schema.yaml"
+    file = BASE_DIR / "example_data" / "example_data.json"
+    report = BASE_DIR / "example_data" / "tmp.json"
+    target_class = get_target_class(str(Path(schema).resolve()))
+
+    assert validate_json(file, schema, report, str(target_class)) is True
+
+    if os.path.exists(report):
+        os.remove(report)
