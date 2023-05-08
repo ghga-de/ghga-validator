@@ -204,7 +204,7 @@ class RefValidationPlugin(BasePlugin):
                     message="Unknown references "
                     + f"({self.non_match_as_string(non_match)})",
                     field=f"{path}.{field}",
-                    value=str(value),
+                    value=value,
                 )
                 messages.append(message)
         return messages
