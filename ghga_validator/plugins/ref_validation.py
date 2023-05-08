@@ -74,35 +74,6 @@ class RefValidationPlugin(BasePlugin):
         )
         return result
 
-    def get_id_list(
-        self, obj: Dict, root: str, class_name: str, id_slot_name: str
-    ) -> List[str]:
-        """
-        Get the list of all identifiers for the inlined objects
-
-        Args:
-            obj: The object to validate
-            root: The root class name
-            class_name: The name of the class used in range
-            id_slot_name: The identifier slot in the range class
-
-        Returns:
-            List[str]: A list of all identifiers for the inlined objects
-
-        """
-        id_list = []
-        for field, value in obj.items():
-            slot_def = self.get_slot_def(root, field)
-            if slot_def:
-                range_class = slot_def.range
-                if range_class != class_name:
-                    continue
-                if isinstance(value, list):
-                    id_list = [x[id_slot_name] for x in value]
-                else:
-                    id_list = [value[id_slot_name]]
-        return id_list
-
     def get_class_def(self, class_name) -> ClassDefinition:
         """
         Get class definition.
