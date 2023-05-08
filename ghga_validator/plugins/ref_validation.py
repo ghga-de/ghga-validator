@@ -18,14 +18,13 @@
 from typing import Dict, List, Optional, Union
 
 from linkml_runtime.utils.schemaview import ClassDefinition, SchemaView, SlotDefinition
-from linkml_validator.models import ValidationMessage, ValidationResult
+from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
 from linkml_validator.plugins.base import BasePlugin
 
 from ghga_validator.core.utils import merge_dicts_of_list, to_list
 
-# pylint: disable=too-many-arguments,too-many-locals
 
-
+# pylint: disable=too-many-locals
 class RefValidationPlugin(BasePlugin):
     """
     Plugin to check whether the values in non inline reference fields point
@@ -63,9 +62,7 @@ class RefValidationPlugin(BasePlugin):
 
         inlined_ids = self.get_inlined_ids(obj, target_class)
 
-        messages = self.validate_json(
-            obj, target_class, obj, target_class, "", inlined_ids
-        )
+        messages = self.validate_json(obj, target_class, "", inlined_ids)
         if len(messages) > 0:
             valid = False
 
@@ -157,11 +154,9 @@ class RefValidationPlugin(BasePlugin):
         self,
         object_to_validate: Dict,
         target_class: str,
-        json_object: Dict,
-        root_class: str,
         path: str,
         inlined_ids: Dict,
-    ) -> ValidationMessage:
+    ) -> List[ValidationMessage]:
         """
         Get slot definition.
 
@@ -180,17 +175,22 @@ class RefValidationPlugin(BasePlugin):
             if not range_class:
                 continue
             if self.schemaview.is_inlined(slot_def):
+                index = 0
+                if not isinstance(value, list):
+                    new_path = path + field + "."
+                else:
+                    new_path = path + field + ".0"
                 for elem in to_list(value):
                     validation_msgs = self.validate_json(
                         elem,
                         range_class,
-                        json_object,
-                        root_class,
-                        path + "->" + field,
+                        new_path,
                         inlined_ids,
                     )
                     if len(validation_msgs) > 0:
                         messages.extend(validation_msgs)
+                    index = index + 1
+                    new_path = path + field + "." + str(index)
             else:
                 if range_class in inlined_ids:
                     id_list = inlined_ids[range_class]
@@ -199,12 +199,11 @@ class RefValidationPlugin(BasePlugin):
                 non_match = self.find_missing_refs(value, id_list)
                 if len(non_match) == 0:
                     continue
-                id_slot = self.schemaview.get_identifier_slot(range_class)
                 message = ValidationMessage(
-                    severity="Error",
-                    message="Unknown references in "
-                    + f"{path}->{field} ({self.non_match_as_string(non_match)})",
-                    field=id_slot.name,
+                    severity=SeverityEnum.error,
+                    message="Unknown references "
+                    + f"({self.non_match_as_string(non_match)})",
+                    field=f"{path}.{field}",
                     value=str(value),
                 )
                 messages.append(message)
