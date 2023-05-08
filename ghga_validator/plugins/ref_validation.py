@@ -21,7 +21,7 @@ from linkml_runtime.utils.schemaview import ClassDefinition, SchemaView, SlotDef
 from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
 from linkml_validator.plugins.base import BasePlugin
 
-from ghga_validator.core.utils import merge_dicts_of_list, to_list
+from ghga_validator.utils import merge_dicts_of_list, to_list
 
 
 # pylint: disable=too-many-locals
@@ -58,13 +58,12 @@ class RefValidationPlugin(BasePlugin):
             raise TypeError("'target_class' argument is required")
         target_class = kwargs["target_class"]
         messages = []
-        valid = True
 
         inlined_ids = self.get_inlined_ids(obj, target_class)
 
         messages = self.validate_json(obj, target_class, "", inlined_ids)
-        if len(messages) > 0:
-            valid = False
+
+        valid = len(messages) == 0
 
         result = ValidationResult(
             plugin_name=self.NAME, valid=valid, validation_messages=messages
@@ -86,13 +85,14 @@ class RefValidationPlugin(BasePlugin):
 
     def get_slot_def(self, class_name: str, slot_name: str) -> SlotDefinition:
         """
-        Get slot definition.
+        Get slot definition inside a class.
 
         Args:
+            class_name: name of the class which contains the slot
             slot_name: slot name
 
         Returns:
-            SlotDefinition: class definition
+            SlotDefinition: slot definition
 
         """
         class_def = self.get_class_def(class_name)

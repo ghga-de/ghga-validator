@@ -23,7 +23,7 @@ from typing import Optional
 import typer
 from linkml_validator.plugins.jsonschema_validation import JsonSchemaValidationPlugin
 
-from ghga_validator.core.utils import get_target_class, validate
+from ghga_validator.core.validation import get_target_class, validate
 
 from .plugins.ref_validation import RefValidationPlugin
 

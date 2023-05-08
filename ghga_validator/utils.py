@@ -14,58 +14,9 @@
 # limitations under the License.
 #
 
-"""Validation utilities"""
+"""Utils"""
 
-from typing import Dict, List, Optional, Union
-
-from linkml.utils.datautils import infer_root_class
-from linkml_runtime.utils.schemaview import SchemaView
-from linkml_validator.models import ValidationReport
-from linkml_validator.validator import Validator
-
-
-def get_validator(schema: str, plugins: List[Dict]) -> Validator:
-    """
-    Get an instance of Validator.
-    Args:
-        schema: The schema YAML
-        plugins: A list of plugins to use
-    Returns:
-        Validator: An instance of Validator
-    """
-    validator = Validator(schema, plugins=plugins)
-    return validator
-
-
-def validate(
-    schema: str, target_class: Optional[str], obj: Dict, plugins: List[Dict]
-) -> ValidationReport:
-    """
-    Validate an object of a particular type against a given schema.
-    Args:
-        schema: The URL or path to the schema YAML
-        obj: The object to validate
-        obj_type: The object type (schema type)
-    """
-    validator = get_validator(schema=schema, plugins=plugins)
-    report = validator.validate(
-        obj, target_class, exclude_object=True, truncate_message=True
-    )
-    return report
-
-
-def get_target_class(schema: str) -> Optional[str]:
-    """
-    Infer the root class from schema
-    Args:
-        schema (str): YAML schema as the string
-
-    Returns:
-        class name for root class, if found in the scheme
-    """
-    with open(schema, "r", encoding="utf8") as file:
-        input_schema = file.read()
-        return infer_root_class(SchemaView(input_schema))
+from typing import Dict, List, Union
 
 
 def to_list(value: Union[Dict, List[Dict]]) -> List[Dict]:
