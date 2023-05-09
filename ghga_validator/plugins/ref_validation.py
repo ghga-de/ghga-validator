@@ -61,7 +61,7 @@ class RefValidationPlugin(BasePlugin):
 
         inlined_ids = self.get_inlined_ids(obj, target_class)
 
-        messages = self.validate_json(obj, target_class, "", inlined_ids)
+        messages = self.validate_refs(obj, target_class, "", inlined_ids)
 
         valid = len(messages) == 0
 
@@ -150,7 +150,7 @@ class RefValidationPlugin(BasePlugin):
                 return range_class
         return None
 
-    def validate_json(
+    def validate_refs(
         self,
         object_to_validate: Dict,
         target_class: str,
@@ -158,10 +158,13 @@ class RefValidationPlugin(BasePlugin):
         inlined_ids: Dict,
     ) -> List[ValidationMessage]:
         """
-        Get slot definition.
+        Validate non inlined reference fields in a JSON object
 
         Args:
-            slot_name: slot name
+            object_to_validate: input JSON object
+            target_class: parent class in the schema
+            path: current JSON path to a field (used to compute the validation error path)
+            inlined_ids: pre-computed dictionary containing all inlined identifiers
 
         Returns:
             SlotDefinition: class definition
@@ -181,7 +184,7 @@ class RefValidationPlugin(BasePlugin):
                 else:
                     new_path = path + field + ".0"
                 for elem in to_list(value):
-                    validation_msgs = self.validate_json(
+                    validation_msgs = self.validate_refs(
                         elem,
                         range_class,
                         new_path,
