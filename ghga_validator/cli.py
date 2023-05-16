@@ -27,9 +27,6 @@ from ghga_validator.core.validation import get_target_class, validate
 from .plugins.jsonschema_validation import JsonSchemaValidationPlugin
 from .plugins.ref_validation import RefValidationPlugin
 
-# from linkml_validator.plugins.jsonschema_validation import JsonSchemaValidationPlugin
-
-
 cli = typer.Typer()
 
 VALIDATION_PLUGINS = [
