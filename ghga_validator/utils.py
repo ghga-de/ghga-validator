@@ -16,7 +16,7 @@
 
 """Utils"""
 
-from typing import Dict, List, Union
+from typing import Deque, Dict, List, Union
 
 
 def to_list(value: Union[Dict, List[Dict]]) -> List[Dict]:
@@ -54,3 +54,16 @@ def merge_dicts_of_list(
         else:
             output_dict[key] = dict2[key]
     return output_dict
+
+
+def path_as_string(error_path: Deque) -> str:
+    """_summary_
+
+    Args:
+        error_path (Deque): _description_
+
+    Returns:
+        str: _description_
+    """
+    path_str = ".".join(str(elem) for elem in error_path)
+    return path_str
