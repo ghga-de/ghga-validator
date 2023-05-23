@@ -22,16 +22,19 @@ from typing import Optional
 
 import typer
 
-from ghga_validator.core.validation import get_target_class, validate
+from ghga_validator.core.validation import validate
+from ghga_validator.schema_utils import get_target_class
 
 from .plugins.jsonschema_validation import JsonSchemaValidationPlugin
 from .plugins.ref_validation import RefValidationPlugin
+from .plugins.unique_validation import UniqueValidationPlugin
 
 cli = typer.Typer()
 
 VALIDATION_PLUGINS = [
-    {"plugin_class": RefValidationPlugin},
-    {"plugin_class": JsonSchemaValidationPlugin},
+    {"plugin_class": RefValidationPlugin, "plugin_args": {}},
+    {"plugin_class": JsonSchemaValidationPlugin, "plugin_args": {}},
+    {"plugin_class": UniqueValidationPlugin, "plugin_args": {}},
 ]
 
 

@@ -15,12 +15,13 @@
 
 """Plugin for LinkML JSON Validator used for validating the non inline references"""
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
-from linkml_runtime.utils.schemaview import ClassDefinition, SchemaView, SlotDefinition
+from linkml_runtime.utils.schemaview import SchemaView
 from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
 from linkml_validator.plugins.base import BasePlugin
 
+from ghga_validator.schema_utils import get_range_class, get_slot_def
 from ghga_validator.utils import merge_dicts_of_list, to_list
 
 
@@ -70,37 +71,6 @@ class RefValidationPlugin(BasePlugin):
         )
         return result
 
-    def get_class_def(self, class_name) -> ClassDefinition:
-        """
-        Get class definition.
-
-        Args:
-            class_name: class name
-
-        Returns:
-            ClassDefinition: class definition
-
-        """
-        return self.schemaview.get_class(class_name)
-
-    def get_slot_def(self, class_name: str, slot_name: str) -> SlotDefinition:
-        """
-        Get slot definition inside a class.
-
-        Args:
-            class_name: name of the class which contains the slot
-            slot_name: slot name
-
-        Returns:
-            SlotDefinition: slot definition
-
-        """
-        class_def = self.get_class_def(class_name)
-        slot_usage = class_def.slot_usage
-        if slot_name in slot_usage:
-            return slot_usage[slot_name]
-        return self.schemaview.get_slot(slot_name)
-
     def find_missing_refs(
         self, ref_value: Union[List[str], str], id_list: List
     ) -> List:
@@ -134,22 +104,6 @@ class RefValidationPlugin(BasePlugin):
             non_match_as_string = "'" + non_match[0] + "'" + " was unexpected"
         return non_match_as_string
 
-    def get_range_class(self, slot_def: SlotDefinition) -> Optional[str]:
-        """Return the range class for a slot
-
-        Args:
-            slot_def (SlotDefinition): Slot Definition
-
-        Returns:
-            Optional[str]: Range class for a slot
-        """
-        all_classes_name = self.schemaview.all_classes().keys()
-        if slot_def:
-            range_class = slot_def.range
-            if range_class in all_classes_name:
-                return range_class
-        return None
-
     def validate_refs(
         self,
         object_to_validate: Dict,
@@ -173,8 +127,8 @@ class RefValidationPlugin(BasePlugin):
         messages = []
 
         for field, value in object_to_validate.items():
-            slot_def = self.get_slot_def(target_class, field)
-            range_class = self.get_range_class(slot_def)
+            slot_def = get_slot_def(self.schemaview, target_class, field)
+            range_class = get_range_class(self.schemaview, slot_def)
             if not range_class:
                 continue
             if self.schemaview.is_inlined(slot_def):
@@ -225,8 +179,8 @@ class RefValidationPlugin(BasePlugin):
         """
         inlined_ids: Dict[str, List[str]] = {}
         for field, value in obj.items():
-            slot_def = self.get_slot_def(target_class, field)
-            range_class = self.get_range_class(slot_def)
+            slot_def = get_slot_def(self.schemaview, target_class, field)
+            range_class = get_range_class(self.schemaview, slot_def)
             if not range_class:
                 continue
             if self.schemaview.is_inlined(slot_def):
