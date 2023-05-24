@@ -18,7 +18,8 @@
 
 from copy import deepcopy
 from itertools import chain
-from typing import Dict, Iterable, Iterator, Optional, Union
+from numbers import Number
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple, Union
 
 from linkml_runtime.linkml_model.meta import ClassDefinitionName, SlotDefinition
 from linkml_runtime.utils.schemaview import SchemaView
@@ -29,7 +30,7 @@ class RootInferenceError(RuntimeError):
     LinkML schema."""
 
 
-class ObjectIterator:
+class ObjectIterator:  # pylint: disable=too-many-instance-attributes
     """This iterator class enables iterating through all elements below a
     specified or inferred root element. The iterator returns tuples of an
     elements class name, identifier if present and the corresponding element
@@ -43,6 +44,7 @@ class ObjectIterator:
     _recursion_iterator: Optional[Iterator]
     _enumerate_non_identifiable: bool
     _inline_non_identifiable: bool
+    _path: List
 
     def __init__(
         self,
@@ -51,12 +53,14 @@ class ObjectIterator:
         root: Optional[str] = None,
         enumerate_non_identifiable=False,
         inline_non_identifiable=True,
+        path: Optional[List] = None,
     ):  # pylint: disable=too-many-arguments
         """Creates a new IdentifiedObjectIterator."""
         self._schema = schema
         self._data = data
         self._enumerate_non_identifiable = enumerate_non_identifiable
         self._inline_non_identifiable = inline_non_identifiable
+        self._path = path if path else []
         # If a root class was specified, use it
         if root:
             self._root = root
@@ -197,19 +201,21 @@ class ObjectIterator:
                     next_slot_def.range,
                     enumerate_non_identifiable=self._enumerate_non_identifiable,
                     inline_non_identifiable=self._inline_non_identifiable,
+                    path=self._path + [next_slot_name],
                 )
             # If the slot is multivalued and encoded in list format, a list with
             # one IdentifiedObjectIterator per element is returned
             elif (
                 next_slot_def.inlined_as_list or next_slot_def.inlined_as_list is None
             ) and isinstance(self._data[next_slot_name], list):
-                for elem in self._data[next_slot_name]:
+                for idx, elem in enumerate(self._data[next_slot_name]):
                     yield ObjectIterator(
                         self._schema,
                         elem,
                         next_slot_def.range,
                         enumerate_non_identifiable=self._enumerate_non_identifiable,
                         inline_non_identifiable=self._inline_non_identifiable,
+                        path=self._path + [next_slot_name] + [idx],
                     )
             # If the slot is multivalued and encoded in dictionary format, a list with
             # one IdentifiedObjectIterator per element is returned. Since the
@@ -228,13 +234,14 @@ class ObjectIterator:
                 modified_data = deepcopy(self._data[next_slot_name])
                 for key, value in modified_data.items():
                     value[identifier_slot.name] = key
-                for elem in modified_data.values():
+                for key, elem in modified_data.items():
                     yield ObjectIterator(
                         self._schema,
                         elem,
                         next_slot_def.range,
                         enumerate_non_identifiable=self._enumerate_non_identifiable,
                         inline_non_identifiable=self._inline_non_identifiable,
+                        path=self._path + [next_slot_name] + [key],
                     )
             # If none of the previous conditions were met, we have encountered a
             # data format that is incompatible with the multivalued, inlined and
@@ -246,7 +253,14 @@ class ObjectIterator:
                     f" of type {type(self._data[next_slot_name]).__name__}"
                 )
 
-    def __next__(self):
+    def __next__(
+        self,
+    ) -> Tuple[
+        Union[str, ClassDefinitionName],
+        Optional[Union[str, Number]],
+        Dict,
+        List[Union[str, Number]],
+    ]:
         if self._recursion_iterator is None:
             # Build an iterator for all slots of the root class that have a class range
             self._recursion_iterator = chain.from_iterable(self._child_iterators())
@@ -260,6 +274,7 @@ class ObjectIterator:
                     if root_identifier_slot
                     else None,  # root element identifier
                     self._re_serialize_root(),  # root element data
+                    self._path,
                 )
 
         # Pick the next slot with a class range and recurse
