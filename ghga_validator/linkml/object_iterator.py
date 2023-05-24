@@ -69,7 +69,7 @@ class ObjectIterator:
         self._recursion_slots = [
             (slot_def.name, slot_def)
             for slot_def in self._schema.class_induced_slots(self._root)
-            if slot_def.range in schema.all_classes()
+            if slot_def.range in schema.all_classes() and slot_def.inlined is not False
         ]
 
         self._recursion_iterator = None
@@ -242,7 +242,7 @@ class ObjectIterator:
             else:
                 raise RuntimeError(
                     "Invalid data. Slot is configured as"
-                    f" multivalued={next_slot_def.multivalued} but data is"
+                    f" inlined_as_list={next_slot_def.inlined_as_list} but data is"
                     f" of type {type(self._data[next_slot_name]).__name__}"
                 )
 
