@@ -15,6 +15,8 @@
 
 """Plugin for LinkML JSON Validator used for validating the non inline references"""
 
+from collections import defaultdict
+from numbers import Number
 from typing import Dict, List, Optional, Union
 
 from linkml_runtime.utils.schemaview import SchemaView, SlotDefinition
@@ -55,10 +57,7 @@ class RefValidationPlugin(BasePlugin):
             ValidationResult: A validation result that describes the outcome of validation
 
         """
-        if "target_class" not in kwargs:
-            raise TypeError("'target_class' argument is required")
         target_class = kwargs["target_class"]
-        messages = []
 
         all_class_ids = self.get_all_class_ids(obj, target_class)
         messages = self.validate_refs(obj, target_class, all_class_ids)
@@ -79,12 +78,9 @@ class RefValidationPlugin(BasePlugin):
         Returns:
             Optional[str]: Range class for a slot
         """
-        all_classes_name = self.schemaview.all_classes().keys()
-        if slot_def:
-            range_class = slot_def.range
-            if range_class in all_classes_name:
-                return range_class
-        return None
+        return (
+            slot_def.range if slot_def.range in self.schemaview.all_classes() else None
+        )
 
     def get_all_class_ids(self, obj: Dict, target_class: str) -> Dict[str, List[str]]:
         """Get all lists of identifies of inlined objects organized by class name
@@ -97,15 +93,12 @@ class RefValidationPlugin(BasePlugin):
             Dict[class_name, List[str]]: The dictionary containing the lists of
             identifiers by the class name
         """
-        all_ids = {}
+        all_ids = defaultdict(list)
 
         for class_name, identifier, _, _ in ObjectIterator(
             self.schemaview, obj, target_class
         ):
-            if class_name not in all_ids:
-                all_ids[class_name] = [identifier]
-            else:
-                all_ids[class_name].append(identifier)
+            all_ids[class_name].append(identifier)
 
         return all_ids
 
@@ -143,8 +136,7 @@ class RefValidationPlugin(BasePlugin):
                         continue
                     message = ValidationMessage(
                         severity=SeverityEnum.error,
-                        message="Unknown references "
-                        + f"({self.non_match_as_string(non_match)})",
+                        message="Unknown reference(s) " + str(non_match),
                         field=f"{path_as_string(path)}.{field}",
                         value=value,
                     )
@@ -152,7 +144,9 @@ class RefValidationPlugin(BasePlugin):
         return messages
 
     def find_missing_refs(
-        self, ref_value: Union[List[str], str], id_list: List
+        self,
+        ref_value: Union[List[Union[Number, str]], Union[Number, str]],
+        id_list: List,
     ) -> List:
         """
         Search for missing references
@@ -161,25 +155,5 @@ class RefValidationPlugin(BasePlugin):
             List: List of missing references
         """
         if not isinstance(ref_value, list):
-            value_to_check = [ref_value]
-        else:
-            value_to_check = ref_value
-        non_match = []
-        if not all(x in id_list for x in value_to_check):
-            non_match = [x for x in value_to_check if x not in id_list]
-        return non_match
-
-    def non_match_as_string(self, non_match: List[str]) -> str:
-        """
-        Generate a validation error message for missing references
-
-        Returns:
-            str: The validation error message
-        """
-        if len(non_match) > 1:
-            non_match_as_string = (
-                "'" + "', '".join(str(x) for x in non_match) + "'" + " were unexpected"
-            )
-        else:
-            non_match_as_string = "'" + non_match[0] + "'" + " was unexpected"
-        return non_match_as_string
+            return [ref_value] if ref_value not in id_list else []
+        return [x for x in ref_value if x not in id_list]

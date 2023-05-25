@@ -24,8 +24,7 @@ import typer
 from linkml_validator.plugins.jsonschema_validation import JsonSchemaValidationPlugin
 
 from ghga_validator.core.validation import get_target_class, validate
-
-from .plugins.ref_validation import RefValidationPlugin
+from ghga_validator.plugins import RefValidationPlugin
 
 cli = typer.Typer()
 
@@ -45,24 +44,22 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
     """
     with open(file, "r", encoding="utf8") as json_file:
         submission_json = json.load(json_file)
-        if submission_json is None:
-            raise EOFError(f"<{file}> is empty! Nothing to validate!")
-        validation_report = validate(
-            str(Path(schema).resolve()),
-            target_class=target_class,
-            obj=submission_json,
-            plugins=VALIDATION_PLUGINS,
+    if submission_json is None:
+        raise EOFError(f"<{file}> is empty! Nothing to validate!")
+    validation_report = validate(
+        str(Path(schema).resolve()),
+        target_class=target_class,
+        obj=submission_json,
+        plugins=VALIDATION_PLUGINS,
+    )
+    with open(report, "w", encoding="utf-8") as sub:
+        json.dump(
+            validation_report.dict(exclude_unset=True, exclude_none=True),
+            sub,
+            ensure_ascii=False,
+            indent=4,
         )
-        if not validation_report.valid:
-            with open(report, "w", encoding="utf-8") as sub:
-                json.dump(
-                    validation_report.dict(exclude_unset=True, exclude_none=True),
-                    sub,
-                    ensure_ascii=False,
-                    indent=4,
-                )
-            return False
-    return True
+    return validation_report.valid
 
 
 @cli.command()
