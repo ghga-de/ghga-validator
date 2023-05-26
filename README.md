@@ -12,7 +12,6 @@ GHGA Validator
 
 CLI Tool for validation of the GHGA metadata.
 
-## Description
 
 ## Installation
 We recommend using the provided Docker container.
