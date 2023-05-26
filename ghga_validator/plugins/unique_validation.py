@@ -15,8 +15,7 @@
 
 """Plugin for LinkML JSON Validator used for validating the non inline references"""
 
-from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
@@ -26,7 +25,6 @@ from ghga_validator.linkml.object_iterator import ObjectIterator
 from ghga_validator.utils import path_as_string
 
 
-# pylint: disable=too-many-locals
 class UniqueValidationPlugin(BasePlugin):
     """
     Plugin to check whether the fields defined as identifier/unique key
@@ -84,21 +82,22 @@ class UniqueValidationPlugin(BasePlugin):
         """
         messages = []
 
-        all_ids = defaultdict(list)  # type: ignore
-
+        seen_ids: Dict[Tuple, List] = {}
         for class_name, identifier, data, path in ObjectIterator(
             self.schemaview, object_to_validate, target_class
         ):
-            if identifier in all_ids[class_name]:
-                id_slot = self.schemaview.get_identifier_slot(class_name)
+            id_slot = self.schemaview.get_identifier_slot(class_name)
+            id_slot_name = id_slot.name if id_slot is not None else "UNKNOWN"
+            if (class_name, identifier) in seen_ids:
+                previous_path = seen_ids[class_name, identifier]
                 message = ValidationMessage(
                     severity=SeverityEnum.error,
-                    message="Duplicate value for unique attribute "
-                    + f"{class_name}({id_slot.name}): {identifier}",
-                    field=f"{path_as_string(path)}",
-                    value=data,
+                    message="Duplicate value for identifier, "
+                    + f"same value used at {path_as_string(previous_path)}.",
+                    field=f"{path_as_string(path)}.{id_slot_name}",
+                    value=data[id_slot_name],
                 )
                 messages.append(message)
             else:
-                all_ids[class_name].append(identifier)
+                seen_ids[class_name, identifier] = path + [id_slot_name]
         return messages
