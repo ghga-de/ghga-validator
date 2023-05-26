@@ -22,18 +22,18 @@ from typing import Optional
 
 import typer
 
-from ghga_validator.core.validation import validate
-from ghga_validator.schema_utils import get_target_class
-
-from .plugins.jsonschema_validation import JsonSchemaValidationPlugin
-from .plugins.ref_validation import RefValidationPlugin
-from .plugins.unique_validation import UniqueValidationPlugin
+from ghga_validator.core.validation import get_target_class, validate
+from ghga_validator.plugins import (
+    GHGAJsonSchemaValidationPlugin,
+    RefValidationPlugin,
+    UniqueValidationPlugin,
+)
 
 cli = typer.Typer()
 
 VALIDATION_PLUGINS = [
     {"plugin_class": RefValidationPlugin, "plugin_args": {}},
-    {"plugin_class": JsonSchemaValidationPlugin, "plugin_args": {}},
+    {"plugin_class": GHGAJsonSchemaValidationPlugin, "plugin_args": {}},
     {"plugin_class": UniqueValidationPlugin, "plugin_args": {}},
 ]
 
@@ -48,24 +48,22 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
     """
     with open(file, "r", encoding="utf8") as json_file:
         submission_json = json.load(json_file)
-        if submission_json is None:
-            raise EOFError(f"<{file}> is empty! Nothing to validate!")
-        validation_report = validate(
-            str(Path(schema).resolve()),
-            target_class=target_class,
-            obj=submission_json,
-            plugins=VALIDATION_PLUGINS,
+    if submission_json is None:
+        raise EOFError(f"<{file}> is empty! Nothing to validate!")
+    validation_report = validate(
+        str(Path(schema).resolve()),
+        target_class=target_class,
+        obj=submission_json,
+        plugins=VALIDATION_PLUGINS,
+    )
+    with open(report, "w", encoding="utf-8") as sub:
+        json.dump(
+            validation_report.dict(exclude_unset=True, exclude_none=True),
+            sub,
+            ensure_ascii=False,
+            indent=4,
         )
-        if not validation_report.valid:
-            with open(report, "w", encoding="utf-8") as sub:
-                json.dump(
-                    validation_report.dict(exclude_unset=True, exclude_none=True),
-                    sub,
-                    ensure_ascii=False,
-                    indent=4,
-                )
-            return False
-    return True
+    return validation_report.valid
 
 
 @cli.command()

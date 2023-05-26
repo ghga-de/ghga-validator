@@ -16,7 +16,7 @@
 
 """Utils"""
 
-from typing import Deque, Dict, List, Union
+from typing import Dict, List, Union
 
 
 def to_list(value: Union[Dict, List[Dict]]) -> List[Dict]:
@@ -35,33 +35,10 @@ def to_list(value: Union[Dict, List[Dict]]) -> List[Dict]:
     return list_of_values
 
 
-def merge_dicts_of_list(
-    dict1: Dict[str, List], dict2: Dict[str, List]
-) -> Dict[str, List]:
-    """Merge two dictionaries which values are lists. Each list in the output dictionary
-    is the union of the lists for a key in the source dictionaries
-
-    Args:
-        dict1, dict2 (Dict[str, List]): dictionaries to be merged
-
-    Returns:
-        Dict[str, List]: Output dictionary
-    """
-    output_dict = dict1
-    for key in dict2:
-        if key in output_dict:
-            output_dict[key].extend(dict2[key])
-        else:
-            output_dict[key] = dict2[key]
-    return output_dict
-
-
-def path_as_string(error_path: Deque) -> str:
+def path_as_string(error_path: List) -> str:
     """Convert the path to the error in JSON to string format
-
     Args:
-        error_path (Deque): path to the error in JSON
-
+        error_path (List): path to the error in JSON
     Returns:
         str: string representation of the error path
     """

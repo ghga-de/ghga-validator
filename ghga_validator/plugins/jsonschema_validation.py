@@ -27,7 +27,7 @@ from linkml_validator.plugins.base import BasePlugin
 from ghga_validator.utils import path_as_string
 
 
-class JsonSchemaValidationPlugin(BasePlugin):
+class GHGAJsonSchemaValidationPlugin(BasePlugin):
     """
     Plugin for structural validation of a JSON object.
 
@@ -37,7 +37,7 @@ class JsonSchemaValidationPlugin(BasePlugin):
 
     """
 
-    NAME = "JsonSchemaValidationPlugin"
+    NAME = "GHGAJsonSchemaValidationPlugin"
 
     def process(self, obj: Dict, **kwargs) -> ValidationResult:
         """
@@ -51,10 +51,8 @@ class JsonSchemaValidationPlugin(BasePlugin):
             ValidationResult: A validation result that describes the outcome of validation
 
         """
-        if "target_class" not in kwargs:
-            raise TypeError("'target_class' argument is required")
         target_class = kwargs["target_class"]
-        json_schema = self.json_from_yaml(target_class)
+        json_schema = self.jsonschema_from_linkml(target_class)
 
         messages = []
 
@@ -85,9 +83,9 @@ class JsonSchemaValidationPlugin(BasePlugin):
         )
         return result
 
-    def json_from_yaml(self, target_class: ClassDefinitionName) -> Dict:
+    def jsonschema_from_linkml(self, target_class: ClassDefinitionName) -> Dict:
         """
-        Generates LinkML schema in JSON format from YAML schema
+        Generates JSON schema from a LinkML schema
         """
         json_schema_as_string = JsonSchemaGenerator(
             schema=self.schema, top_class=target_class
