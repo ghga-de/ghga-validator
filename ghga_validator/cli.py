@@ -26,7 +26,7 @@ from ghga_validator.core.validation import get_target_class, validate
 from ghga_validator.plugins import (
     GHGAJsonSchemaValidationPlugin,
     RefValidationPlugin,
-    UniqueValidationPlugin,
+    UniqueIdentifierValidationPlugin,
 )
 
 cli = typer.Typer()
@@ -34,7 +34,7 @@ cli = typer.Typer()
 VALIDATION_PLUGINS = [
     {"plugin_class": RefValidationPlugin, "plugin_args": {}},
     {"plugin_class": GHGAJsonSchemaValidationPlugin, "plugin_args": {}},
-    {"plugin_class": UniqueValidationPlugin, "plugin_args": {}},
+    {"plugin_class": UniqueIdentifierValidationPlugin, "plugin_args": {}},
 ]
 
 

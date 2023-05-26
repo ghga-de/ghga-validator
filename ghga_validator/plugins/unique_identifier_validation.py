@@ -25,7 +25,7 @@ from ghga_validator.linkml.object_iterator import ObjectIterator
 from ghga_validator.utils import path_as_string
 
 
-class UniqueValidationPlugin(BasePlugin):
+class UniqueIdentifierValidationPlugin(BasePlugin):
     """
     Plugin to check whether the fields defined as identifier/unique key
     are unique for a class.
@@ -36,7 +36,7 @@ class UniqueValidationPlugin(BasePlugin):
 
     """
 
-    NAME = "UniqueValidationPlugin"
+    NAME = "UniqueIdentifierValidationPlugin"
 
     def __init__(self, schema: str) -> None:
         super().__init__(schema)
