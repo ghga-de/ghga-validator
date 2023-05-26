@@ -16,23 +16,7 @@
 
 """Utils"""
 
-from typing import Dict, List, Union
-
-
-def to_list(value: Union[Dict, List[Dict]]) -> List[Dict]:
-    """
-    If an value is not an instance of List of objects, transform to it
-    """
-    list_of_values = []
-    if not isinstance(value, list):
-        list_of_values = [value]
-    else:
-        list_of_values = value
-    if len(list_of_values) == 0:
-        return []
-    if not isinstance(list_of_values[0], dict):
-        return []
-    return list_of_values
+from typing import List
 
 
 def path_as_string(error_path: List) -> str:

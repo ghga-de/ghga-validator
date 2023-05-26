@@ -15,14 +15,15 @@
 
 """Plugin for LinkML JSON Validator used for validating the non inline references"""
 
+from collections import defaultdict
 from typing import Dict, List
 
 from linkml_runtime.utils.schemaview import SchemaView
 from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
 from linkml_validator.plugins.base import BasePlugin
 
-from ghga_validator.schema_utils import get_range_class, get_slot_def
-from ghga_validator.utils import to_list
+from ghga_validator.linkml.object_iterator import ObjectIterator
+from ghga_validator.utils import path_as_string
 
 
 # pylint: disable=too-many-locals
@@ -55,11 +56,9 @@ class UniqueValidationPlugin(BasePlugin):
             ValidationResult: A validation result that describes the outcome of validation
 
         """
-        if "target_class" not in kwargs:
-            raise TypeError("'target_class' argument is required")
         target_class = kwargs["target_class"]
 
-        messages = self.validate_unique_fields(obj, target_class, "")
+        messages = self.validate_unique_fields(obj, target_class)
         valid = len(messages) == 0
 
         result = ValidationResult(
@@ -71,7 +70,6 @@ class UniqueValidationPlugin(BasePlugin):
         self,
         object_to_validate: Dict,
         target_class: str,
-        path: str,
     ) -> List[ValidationMessage]:
         """
         Validate non inlined reference fields in a JSON object
@@ -79,8 +77,6 @@ class UniqueValidationPlugin(BasePlugin):
         Args:
             object_to_validate: input JSON object
             target_class: parent class in the schema
-            path: current JSON path to a field (used to compute the validation error path)
-            inlined_ids: pre-computed dictionary containing all inlined identifiers
 
         Returns:
             SlotDefinition: class definition
@@ -88,44 +84,21 @@ class UniqueValidationPlugin(BasePlugin):
         """
         messages = []
 
-        for field, value in object_to_validate.items():
-            slot_def = get_slot_def(self.schemaview, target_class, field)
-            range_class = get_range_class(self.schemaview, slot_def)
-            if not range_class:
-                continue
-            if self.schemaview.is_inlined(slot_def):
-                id_slot = self.schemaview.get_identifier_slot(range_class)
-                if isinstance(value, list):
-                    if id_slot:
-                        id_list = [item[id_slot.name] for item in value]
-                        non_unique = set(
-                            elem for elem in id_list if id_list.count(elem) > 1
-                        )
-                        for elem in non_unique:
-                            filtered_value = [
-                                item for item in value if item[id_slot.name] == elem
-                            ]
-                            message = ValidationMessage(
-                                severity=SeverityEnum.error,
-                                message="Duplicate value for unique attribute "
-                                + f"{range_class}({id_slot.name}): {elem}",
-                                field=f"{path}{field}",
-                                value=filtered_value,
-                            )
-                            messages.append(message)
-                index = 0
-                if not isinstance(value, list):
-                    new_path = path + field + "."
-                else:
-                    new_path = path + field + ".0"
-                for elem in to_list(value):
-                    validation_msgs = self.validate_unique_fields(
-                        elem,
-                        range_class,
-                        new_path,
-                    )
-                    if len(validation_msgs) > 0:
-                        messages.extend(validation_msgs)
-                    index = index + 1
-                    new_path = path + field + "." + str(index)
+        all_ids = defaultdict(list)  # type: ignore
+
+        for class_name, identifier, data, path in ObjectIterator(
+            self.schemaview, object_to_validate, target_class
+        ):
+            if identifier in all_ids[class_name]:
+                id_slot = self.schemaview.get_identifier_slot(class_name)
+                message = ValidationMessage(
+                    severity=SeverityEnum.error,
+                    message="Duplicate value for unique attribute "
+                    + f"{class_name}({id_slot.name}): {identifier}",
+                    field=f"{path_as_string(path)}",
+                    value=data,
+                )
+                messages.append(message)
+            else:
+                all_ids[class_name].append(identifier)
         return messages
