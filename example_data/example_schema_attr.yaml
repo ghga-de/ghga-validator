@@ -29,46 +29,38 @@ default_prefix: example
 
 classes:
   Letter:
-    slots:
-      - id
-      - type
-      - str
-    slot_usage:
+    attributes:
       id:
         identifier: true
+      type:
+      str:
+
   Word:
-    slots:
-      - id
-      - type
-      - str
-      - letters
-    slot_usage:
+    attributes:
       id:
         identifier: true
+      type:
+      str:
       letters:
         range: Letter
         multivalued: true
         inlined: false
+
   Phrase:
-    slots:
-      - id
-      - type
-      - str
-      - words
-    slot_usage:
+    attributes:
       id:
         identifier: true
+      type:
+      str:
       words:
         range: Word
         multivalued: true
         inlined: false
+
   Text:
-    slots:
-      - id
-      - str
-      - words
-      - phrases
-    slot_usage:
+    attributes:
+      id:
+      str:
       words:
         range: Word
         multivalued: true
@@ -81,10 +73,7 @@ classes:
         inlined_as_list: true
 
   TextAnalysis:
-    slots:
-      - text
-      - letters
-    slot_usage:
+    attributes:
       text:
         range: Text
         inlined: true
@@ -93,12 +82,3 @@ classes:
         multivalued: true
         inlined: true
         inlined_as_list: true
-
-slots:
-  id:
-  type:
-  str:
-  words:
-  phrases:
-  letters:
-  text:

@@ -14,11 +14,9 @@
 # limitations under the License.
 
 import os
-from pathlib import Path
 
 from ghga_validator import BASE_DIR
 from ghga_validator.cli import validate_json
-from ghga_validator.schema_utils import get_target_class
 
 
 def test_ref_validation():
@@ -26,9 +24,30 @@ def test_ref_validation():
     schema = BASE_DIR / "example_data" / "example_schema.yaml"
     file = BASE_DIR / "example_data" / "example_data.json"
     report = BASE_DIR / "example_data" / "tmp.json"
-    target_class = get_target_class(str(Path(schema).resolve()))
+    target_class = "TextAnalysis"
 
     assert validate_json(file, schema, report, str(target_class)) is True
+
+    schema_attr = BASE_DIR / "example_data" / "example_schema_attr.yaml"
+
+    assert validate_json(file, schema_attr, report, str(target_class)) is True
+
+    file_wrong_json_schema = (
+        BASE_DIR / "example_data" / "example_data_wrong_json_schema.json"
+    )
+
+    assert (
+        validate_json(file_wrong_json_schema, schema, report, str(target_class))
+        is False
+    )
+
+    file_wrong_ref = BASE_DIR / "example_data" / "example_data_wrong_ref.json"
+
+    assert validate_json(file_wrong_ref, schema, report, str(target_class)) is False
+
+    file_not_unique_id = BASE_DIR / "example_data" / "example_data_not_unique_id.json"
+
+    assert validate_json(file_not_unique_id, schema, report, str(target_class)) is False
 
     if os.path.exists(report):
         os.remove(report)
