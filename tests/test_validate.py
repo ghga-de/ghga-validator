@@ -49,5 +49,16 @@ def test_ref_validation():
 
     assert validate_json(file_not_unique_id, schema, report, str(target_class)) is False
 
+    file_empty = BASE_DIR / "example_data" / "example_data_empty.json"
+
+    assert validate_json(file_empty, schema, report, str(target_class)) is True
+
+    schema_required_fields = BASE_DIR / "example_data" / "example_schema_required.yaml"
+
+    assert (
+        validate_json(file_empty, schema_required_fields, report, str(target_class))
+        is False
+    )
+
     if os.path.exists(report):
         os.remove(report)
