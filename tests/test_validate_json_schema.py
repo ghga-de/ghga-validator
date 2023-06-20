@@ -22,8 +22,8 @@ from .fixtures.utils import BASE_DIR
 
 def test_validate_json_schema():
     """Test GHGAJsonSchemaValidationPlugin"""
-    schema = BASE_DIR / "test_schema" / "example_schema.yaml"
-    file = BASE_DIR / "test_data" / "example_data_wrong_json_schema.json"
+    schema = BASE_DIR / "schemas" / "example_schema.yaml"
+    file = BASE_DIR / "data" / "example_data_wrong_json_schema.json"
     report = BASE_DIR / "tmp.json"
     target_class = "TextAnalysis"
 
