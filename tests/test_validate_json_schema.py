@@ -13,9 +13,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Test dummy."""
+import os
+
+from ghga_validator.cli import validate_json
+
+from .fixtures.utils import BASE_DIR
 
 
-def test_dummy():
-    """Just makes the CI pass."""
-    assert True
+def test_validate_json_schema():
+    """Test GHGAJsonSchemaValidationPlugin"""
+    schema = BASE_DIR / "test_schema" / "example_schema.yaml"
+    file = BASE_DIR / "test_data" / "example_data_wrong_json_schema.json"
+    report = BASE_DIR / "output" / "tmp.json"
+    target_class = "TextAnalysis"
+
+    assert validate_json(file, schema, report, str(target_class)) is False
+    if os.path.exists(report):
+        os.remove(report)
