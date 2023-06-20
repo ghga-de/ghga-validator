@@ -24,7 +24,7 @@ def test_validate_attribute():
     """Test data validation when slots in linkml schema are defined with attributes"""
     schema = BASE_DIR / "test_schema" / "example_schema_attr.yaml"
     file = BASE_DIR / "test_data" / "example_data.json"
-    report = BASE_DIR / "output" / "tmp.json"
+    report = BASE_DIR / "tmp.json"
     target_class = "TextAnalysis"
 
     assert validate_json(file, schema, report, str(target_class)) is True

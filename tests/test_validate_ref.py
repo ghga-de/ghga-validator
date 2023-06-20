@@ -24,7 +24,7 @@ def test_validate_ref():
     """Test RefValidationPlugin"""
     schema = BASE_DIR / "test_schema" / "example_schema.yaml"
     file = BASE_DIR / "test_data" / "example_data_wrong_ref.json"
-    report = BASE_DIR / "output" / "tmp.json"
+    report = BASE_DIR / "tmp.json"
     target_class = "TextAnalysis"
 
     assert validate_json(file, schema, report, str(target_class)) is False

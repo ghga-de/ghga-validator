@@ -24,7 +24,7 @@ def test_validate_slots():
     """Test data validation (using all validation plugins)"""
     schema = BASE_DIR / "test_schema" / "example_schema.yaml"
     file = BASE_DIR / "test_data" / "example_data.json"
-    report = BASE_DIR / "output" / "tmp.json"
+    report = BASE_DIR / "tmp.json"
     target_class = "TextAnalysis"
 
     assert validate_json(file, schema, report, str(target_class)) is True
