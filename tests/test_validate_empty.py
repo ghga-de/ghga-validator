@@ -20,10 +20,10 @@ from ghga_validator.cli import validate_json
 from .fixtures.utils import BASE_DIR
 
 
-def test_validate_slots():
-    """Test data validation (using all validation plugins)"""
+def test_validate_empty():
+    """Test validating empty data"""
     schema = BASE_DIR / "schemas" / "example_schema.yaml"
-    file = BASE_DIR / "data" / "example_data.json"
+    file = BASE_DIR / "data" / "example_data_empty.json"
     report = BASE_DIR / "tmp.json"
     target_class = "TextAnalysis"
 

@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Optional
 
 import typer
+import yaml
 
 from ghga_validator.core.validation import get_target_class, validate
 from ghga_validator.plugins import (
@@ -48,7 +49,7 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
         report: The URL or path to store the validation results
     """
     with open(file, "r", encoding="utf8") as json_file:
-        submission_json = json.load(json_file)
+        submission_json = yaml.safe_load(json_file)
     if submission_json is None:
         raise EOFError(f"<{file}> is empty! Nothing to validate!")
     validation_report = validate(
@@ -69,7 +70,9 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
             default_validation_results + validation_report.validation_results
         )
     else:
-        typer.echo("JSON schema validation failed!")
+        typer.echo(
+            "JSON schema validation failed. Subsequent validations skipped.", err=True
+        )
     with open(report, "w", encoding="utf-8") as sub:
         json.dump(
             validation_report.dict(exclude_unset=True, exclude_none=True),
