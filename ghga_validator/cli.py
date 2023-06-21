@@ -70,7 +70,9 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
             default_validation_results + validation_report.validation_results
         )
     else:
-        typer.echo("JSON schema validation failed!")
+        typer.echo(
+            "JSON schema validation failed. Subsequent validations skipped.", err=True
+        )
     with open(report, "w", encoding="utf-8") as sub:
         json.dump(
             validation_report.dict(exclude_unset=True, exclude_none=True),
