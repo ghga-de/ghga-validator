@@ -13,15 +13,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Plugin for LinkML JSON Validator used for validating the non inline references"""
+"""Plugin for validating the identifier uniqueness"""
 
 from typing import Dict, List, Tuple
 
-from linkml_runtime.utils.schemaview import SchemaView
-from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
-from linkml_validator.plugins.base import BasePlugin
-
+from ghga_validator.core.models import ValidationMessage, ValidationResult
 from ghga_validator.linkml.object_iterator import ObjectIterator
+from ghga_validator.plugins.base import BasePlugin
 from ghga_validator.utils import path_as_string
 
 
@@ -37,10 +35,6 @@ class UniqueIdentifierValidationPlugin(BasePlugin):
     """
 
     NAME = "UniqueIdentifierValidationPlugin"
-
-    def __init__(self, schema: str) -> None:
-        super().__init__(schema)
-        self.schemaview = SchemaView(schema)
 
     def process(self, obj: Dict, **kwargs) -> ValidationResult:
         """
@@ -84,14 +78,13 @@ class UniqueIdentifierValidationPlugin(BasePlugin):
 
         seen_ids: Dict[Tuple, List] = {}
         for class_name, identifier, data, path in ObjectIterator(
-            self.schemaview, object_to_validate, target_class
+            self.schema, object_to_validate, target_class
         ):
-            id_slot = self.schemaview.get_identifier_slot(class_name)
+            id_slot = self.schema.get_identifier_slot(class_name)
             id_slot_name = id_slot.name if id_slot is not None else "UNKNOWN"
             if (class_name, identifier) in seen_ids:
                 previous_path = seen_ids[class_name, identifier]
                 message = ValidationMessage(
-                    severity=SeverityEnum.error,
                     message="Duplicate value for identifier, "
                     + f"same value used at {path_as_string(previous_path)}.",
                     field=f"{path_as_string(path)}.{id_slot_name}",

@@ -18,17 +18,20 @@
 
 import json
 from pathlib import Path
-from typing import Optional
+from typing import Dict, List, Optional
 
 import typer
 import yaml
+from linkml_runtime.utils.schemaview import SchemaView
 
-from ghga_validator.core.validation import get_target_class, validate
+from ghga_validator.core.models import ValidationReport
+from ghga_validator.core.validator import Validator
 from ghga_validator.plugins import (
     GHGAJsonSchemaValidationPlugin,
     RefValidationPlugin,
     UniqueIdentifierValidationPlugin,
 )
+from ghga_validator.schema_utils import get_target_class
 
 cli = typer.Typer()
 
@@ -40,20 +43,24 @@ VALIDATION_PLUGINS = [
 ]
 
 
-def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> bool:
+def validate_json_file(
+    file: Path, schema: Path, report: Path, target_class: str
+) -> bool:
     """
-    Validate JSON object against a given schema. Store the errors to the validation report.
+    Validate JSON object read from a file against a given schema.
+    Store the errors to the validation report.
     Args:
-        file: The URL or path to submission file
-        schema: The URL or path to YAML file (submission schema)
+        file: The URL or path to file containing data to be validated
+        schema: The URL or path to YAML file
         report: The URL or path to store the validation results
     """
     with open(file, "r", encoding="utf8") as json_file:
         submission_json = yaml.safe_load(json_file)
     if submission_json is None:
         raise EOFError(f"<{file}> is empty! Nothing to validate!")
+    schema_view = SchemaView(schema)
     validation_report = validate(
-        str(Path(schema).resolve()),
+        schema_view,
         target_class=target_class,
         obj=submission_json,
         plugins=DEFAULT_PLUGINS,
@@ -61,7 +68,7 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
     if validation_report.valid:
         default_validation_results = validation_report.validation_results
         validation_report = validate(
-            str(Path(schema).resolve()),
+            schema_view,
             target_class=target_class,
             obj=submission_json,
             plugins=VALIDATION_PLUGINS,
@@ -81,6 +88,25 @@ def validate_json(file: Path, schema: Path, report: Path, target_class: str) -> 
             indent=4,
         )
     return validation_report.valid
+
+
+def validate(
+    schema: SchemaView,
+    target_class: str,
+    obj: Dict,
+    plugins: List[Dict],
+) -> ValidationReport:
+    """
+    Validate an object of a particular type against a given schema.
+    Args:
+        schema: Virtual LinkML schema (SchemaView)
+        target_class: The root class name
+        obj: The object to validate
+        plugins: Plugins for validation
+    """
+    validator = Validator(schema=schema, plugins=plugins)
+    report = validator.validate(obj, target_class, exclude_object=True)
+    return report
 
 
 @cli.command()
@@ -122,7 +148,7 @@ def main(
             "Target class cannot be inferred,"
             + "please specify the 'target_class' argument"
         )
-    if validate_json(input_file, schema, report, target_class):
+    if validate_json_file(input_file, schema, report, target_class):
         typer.echo(f"<{input_file}> is valid!")
     else:
         typer.echo(

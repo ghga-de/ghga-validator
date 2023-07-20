@@ -13,17 +13,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Plugin for LinkML JSON Validator used for validating the non inline references"""
+"""Plugin for validating the non inline references"""
 
 from collections import defaultdict
 from numbers import Number
 from typing import Dict, List, Union
 
-from linkml_runtime.utils.schemaview import SchemaView
-from linkml_validator.models import SeverityEnum, ValidationMessage, ValidationResult
-from linkml_validator.plugins.base import BasePlugin
-
+from ghga_validator.core.models import ValidationMessage, ValidationResult
 from ghga_validator.linkml.object_iterator import ObjectIterator
+from ghga_validator.plugins.base import BasePlugin
 from ghga_validator.schema_utils import get_range_class
 from ghga_validator.utils import path_as_string
 
@@ -41,10 +39,6 @@ class RefValidationPlugin(BasePlugin):
     """
 
     NAME = "RefValidationPlugin"
-
-    def __init__(self, schema: str) -> None:
-        super().__init__(schema)
-        self.schemaview = SchemaView(schema)
 
     def process(self, obj: Dict, **kwargs) -> ValidationResult:
         """
@@ -84,7 +78,7 @@ class RefValidationPlugin(BasePlugin):
         all_ids = defaultdict(list)
 
         for class_name, identifier, _, _ in ObjectIterator(
-            self.schemaview, obj, target_class
+            self.schema, obj, target_class
         ):
             all_ids[class_name].append(identifier)
 
@@ -111,19 +105,18 @@ class RefValidationPlugin(BasePlugin):
         messages = []
 
         for class_name, _, data, path in ObjectIterator(
-            self.schemaview, object_to_validate, target_class
+            self.schema, object_to_validate, target_class
         ):
             for field, value in data.items():
-                slot_def = self.schemaview.induced_slot(field, class_name)
-                range_class = get_range_class(self.schemaview, slot_def)
-                if range_class and not self.schemaview.is_inlined(slot_def):
+                slot_def = self.schema.induced_slot(field, class_name)
+                range_class = get_range_class(self.schema, slot_def)
+                if range_class and not self.schema.is_inlined(slot_def):
                     non_match = self.find_missing_refs(
                         value, all_class_ids[range_class]
                     )
                     if len(non_match) == 0:
                         continue
                     message = ValidationMessage(
-                        severity=SeverityEnum.error,
                         message="Unknown reference(s) " + str(non_match),
                         field=f"{path_as_string(path)}.{field}",
                         value=value,
