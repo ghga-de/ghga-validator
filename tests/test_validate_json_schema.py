@@ -22,10 +22,10 @@ from .fixtures.utils import BASE_DIR
 
 def test_validate_json_file_schema():
     """Test GHGAJsonSchemaValidationPlugin"""
-    schema = BASE_DIR / "schemas" / "example_schema.yaml"
+    schema = BASE_DIR / "schemas" / "advanced_model.yaml"
     file = BASE_DIR / "data" / "example_data_wrong_json_schema.json"
     report = BASE_DIR / "tmp.json"
-    target_class = "TextAnalysis"
+    target_class = "Submission"
 
     assert validate_json_file(file, schema, report, str(target_class)) is False
     if os.path.exists(report):

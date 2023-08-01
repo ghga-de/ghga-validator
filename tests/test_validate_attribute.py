@@ -22,11 +22,12 @@ from .fixtures.utils import BASE_DIR
 
 def test_validate_attribute():
     """Test data validation when slots in linkml schema are defined with attributes"""
-    schema = BASE_DIR / "schemas" / "example_schema_attr.yaml"
+    schema = BASE_DIR / "schemas" / "advanced_model_attr.yaml"
     file = BASE_DIR / "data" / "example_data.json"
     report = BASE_DIR / "tmp.json"
-    target_class = "TextAnalysis"
+    target_class = "Submission"
 
     assert validate_json_file(file, schema, report, str(target_class)) is True
+
     if os.path.exists(report):
         os.remove(report)
