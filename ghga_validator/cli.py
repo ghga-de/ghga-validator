@@ -27,6 +27,7 @@ from linkml_runtime.utils.schemaview import SchemaView
 from ghga_validator.core.models import ValidationReport
 from ghga_validator.core.validator import Validator
 from ghga_validator.plugins import (
+    BackRefValidationPlugin,
     GHGAJsonSchemaValidationPlugin,
     RefValidationPlugin,
     UniqueIdentifierValidationPlugin,
@@ -40,6 +41,7 @@ DEFAULT_PLUGINS = [{"plugin_class": GHGAJsonSchemaValidationPlugin, "plugin_args
 VALIDATION_PLUGINS = [
     {"plugin_class": RefValidationPlugin, "plugin_args": {}},
     {"plugin_class": UniqueIdentifierValidationPlugin, "plugin_args": {}},
+    {"plugin_class": BackRefValidationPlugin, "plugin_args": {}},
 ]
 
 
