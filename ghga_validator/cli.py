@@ -26,21 +26,13 @@ from linkml_runtime.utils.schemaview import SchemaView
 
 from ghga_validator.core.models import ValidationReport
 from ghga_validator.core.validator import Validator
-from ghga_validator.plugins import (
-    GHGAJsonSchemaValidationPlugin,
-    RefValidationPlugin,
-    UniqueIdentifierValidationPlugin,
-)
 from ghga_validator.schema_utils import get_target_class
 
 cli = typer.Typer()
 
-DEFAULT_PLUGINS = [{"plugin_class": GHGAJsonSchemaValidationPlugin, "plugin_args": {}}]
+DEFAULT_PLUGINS = ["GHGAJsonSchemaValidationPlugin"]
 
-VALIDATION_PLUGINS = [
-    {"plugin_class": RefValidationPlugin, "plugin_args": {}},
-    {"plugin_class": UniqueIdentifierValidationPlugin, "plugin_args": {}},
-]
+VALIDATION_PLUGINS = ["RefValidationPlugin", "UniqueIdentifierValidationPlugin"]
 
 
 def validate_json_file(
@@ -62,7 +54,7 @@ def validate_json_file(
     validation_report = validate(
         schema_view,
         target_class=target_class,
-        obj=submission_json,
+        data=submission_json,
         plugins=DEFAULT_PLUGINS,
     )
     if validation_report.valid:
@@ -70,7 +62,7 @@ def validate_json_file(
         validation_report = validate(
             schema_view,
             target_class=target_class,
-            obj=submission_json,
+            data=submission_json,
             plugins=VALIDATION_PLUGINS,
         )
         validation_report.validation_results = (
@@ -80,9 +72,12 @@ def validate_json_file(
         typer.echo(
             "JSON schema validation failed. Subsequent validations skipped.", err=True
         )
+
     with open(report, "w", encoding="utf-8") as sub:
         json.dump(
-            validation_report.dict(exclude_unset=True, exclude_none=True),
+            validation_report.dict(
+                exclude={"object"}, exclude_unset=True, exclude_none=True
+            ),
             sub,
             ensure_ascii=False,
             indent=4,
@@ -93,19 +88,19 @@ def validate_json_file(
 def validate(
     schema: SchemaView,
     target_class: str,
-    obj: Dict,
-    plugins: List[Dict],
+    data: Dict,
+    plugins: List,
 ) -> ValidationReport:
     """
     Validate an object of a particular type against a given schema.
     Args:
         schema: Virtual LinkML schema (SchemaView)
         target_class: The root class name
-        obj: The object to validate
-        plugins: Plugins for validation
+        data: The JSON object to validate
+        plugins: List of plugin class names for validation
     """
     validator = Validator(schema=schema, plugins=plugins)
-    report = validator.validate(obj, target_class, exclude_object=True)
+    report = validator.validate(data, target_class)
     return report
 
 

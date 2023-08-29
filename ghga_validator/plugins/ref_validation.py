@@ -21,41 +21,34 @@ from typing import Dict, List, Union
 
 from ghga_validator.core.models import ValidationMessage, ValidationResult
 from ghga_validator.linkml.object_iterator import ObjectIterator
-from ghga_validator.plugins.base import BasePlugin
+from ghga_validator.plugins.core_plugin import ValidationPlugin
 from ghga_validator.schema_utils import get_range_class
 from ghga_validator.utils import path_as_string
 
 
 # pylint: disable=too-many-locals
-class RefValidationPlugin(BasePlugin):
+class RefValidationPlugin(ValidationPlugin):
     """
     Plugin to check whether the values in non inline reference fields point
     to existing objects.
-
-    Args:
-        schema: Path or URL to schema YAML
-        kwargs: Additional arguments that are used to instantiate the plugin
-
     """
 
     NAME = "RefValidationPlugin"
 
-    def process(self, obj: Dict, **kwargs) -> ValidationResult:
+    def validate(self, data: Dict, target_class: str) -> ValidationResult:
         """
         Perform validation on an object.
 
         Args:
-            obj: The object to validate
-            kwargs: Additional arguments that are used for processing
+            data: The object to validate
+            target_class: class name for root class
 
         Returns:
             ValidationResult: A validation result that describes the outcome of validation
 
         """
-        target_class = kwargs["target_class"]
-
-        all_class_ids = self.get_all_class_ids(obj, target_class)
-        messages = self.validate_refs(obj, target_class, all_class_ids)
+        all_class_ids = self.get_all_class_ids(data, target_class)
+        messages = self.validate_refs(data, target_class, all_class_ids)
 
         valid = len(messages) == 0
 

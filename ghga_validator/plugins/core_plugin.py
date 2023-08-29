@@ -12,47 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-"""Plugin Core Class"""
+"""Core Class for Validation Plugins"""
 
 from abc import ABC, abstractmethod
-from typing import Dict
 
 from ghga_validator.core.models import ValidationResult
 
 
-class BasePlugin(ABC):
-    """
-    Plugin Core Class
+class ValidationPlugin(ABC):
+    """An abstract class for validation plugins"""
 
-    Args:
-        schema: Virtual LinkML schema (SchemaView)
-        kwargs: Additional arguments that are used to instantiate the plugin
-
-    """
-
-    NAME = "BasePlugin"
-
-    def __init__(self, schema) -> None:
+    def __init__(self, schema):
         """
-        Initialize the plugin with the given schema YAML.
+        Initialize the plugin with the given schema.
 
         Args:
-            schema: Virtual LinkML schema (SchemaView)
-            kwargs: Additional arguments that are used to instantiate the plugin
+            schema: schema representation
 
         """
         self.schema = schema
 
     @abstractmethod
-    def process(self, obj: Dict, **kwargs) -> ValidationResult:
-        """
-        Run one or more operations on the given object and return
-        the results.
-
-        Args:
-            obj: The object to process
-            kwargs: Additional arguments that are used for processing
-
-        """
-        ...
+    def validate(self, data, target_class) -> ValidationResult:
+        """Validate input data against the schema starting with the target class"""

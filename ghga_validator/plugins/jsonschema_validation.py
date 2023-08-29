@@ -23,41 +23,37 @@ from linkml.generators.jsonschemagen import JsonSchemaGenerator
 from linkml_runtime.utils.schemaview import ClassDefinitionName
 
 from ghga_validator.core.models import ValidationMessage, ValidationResult
-from ghga_validator.plugins.base import BasePlugin
+from ghga_validator.plugins.core_plugin import ValidationPlugin
 from ghga_validator.utils import path_as_string
 
 
-class GHGAJsonSchemaValidationPlugin(BasePlugin):
+class GHGAJsonSchemaValidationPlugin(ValidationPlugin):
     """
     Plugin for structural validation of a JSON object.
-
-    Args:
-        schema: Path or URL to schema YAML
-        kwargs: Additional arguments that are used to instantiate the plugin
-
     """
 
     NAME = "GHGAJsonSchemaValidationPlugin"
 
-    def process(self, obj: Dict, **kwargs) -> ValidationResult:
+    def validate(
+        self, data: Dict, target_class: ClassDefinitionName
+    ) -> ValidationResult:
         """
         Perform validation on an object.
 
         Args:
-            obj: The object to validate
-            kwargs: Additional arguments that are used for processing
+            data: The JSON object to validate
+            target_class: class name for root class
 
         Returns:
             ValidationResult: A validation result that describes the outcome of validation
 
         """
-        target_class = kwargs["target_class"]
         json_schema = self.jsonschema_from_linkml(target_class)
 
         messages = []
 
         validator = jsonschema.Draft7Validator(json_schema)
-        errors = validator.iter_errors(obj)
+        errors = validator.iter_errors(data)
 
         for error in errors:
             message = ValidationMessage(

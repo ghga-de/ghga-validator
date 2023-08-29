@@ -16,12 +16,15 @@
 
 """Validator of data against a given LinkML schema."""
 
+import importlib
+import pkgutil
 from typing import Dict, List, Optional
 
 from linkml_runtime.utils.schemaview import SchemaView
 
+import ghga_validator.plugins as plugin_package
 from ghga_validator.core.models import ValidationReport
-from ghga_validator.plugins.base import BasePlugin
+from ghga_validator.plugins.core_plugin import ValidationPlugin
 
 
 class Validator:
@@ -34,18 +37,17 @@ class Validator:
 
     """
 
-    def __init__(self, schema: SchemaView, plugins: Optional[List]) -> None:
+    def __init__(self, schema: SchemaView, plugins: Optional[List[str]]) -> None:
         self._schema = schema
-        self.load_plugins(plugins)
+        self._plugins = self.load_plugins(plugins)
 
-    def validate(self, obj: Dict, target_class: str, **kwargs) -> ValidationReport:
+    def validate(self, data: Dict, target_class: str) -> ValidationReport:
         """
         Validate an object.
 
         Args:
-            obj: The object to validate
+            data: The object to validate
             target_class: The type of object
-            kwargs: Any additional arguments
 
         Returns:
             ValidationReport: A validation report that summarizes the validation
@@ -53,40 +55,38 @@ class Validator:
         """
         validation_results = []
         valid = True
-        for plugin in self._plugins:
-            validation_result = plugin.process(
-                obj=obj, target_class=target_class, **kwargs
-            )
+        for _, plugin in self._plugins.items():
+            validation_result = plugin.validate(data=data, target_class=target_class)
             validation_results.append(validation_result)
             if not validation_result.valid:
                 valid = False
-        if "exclude_object" in kwargs and kwargs["exclude_object"]:
-            object_for_report = None
-        else:
-            object_for_report = obj
         validation_report = ValidationReport(
-            object=object_for_report,
+            object=data,
             type=target_class,
             valid=valid,
             validation_results=validation_results,
         )
         return validation_report
 
-    def load_plugins(self, plugins: Optional[List]):
+    def load_plugins(self, plugins: Optional[List[str]]) -> Dict:
         """
-        Load plugins for validation
-
-        Args:
-            plugins: The list of plugins to be loaded
+        Load the list of plugins
         """
-        self._plugins = []
-        if plugins:
-            for plugin in plugins:
-                plugin_class = plugin["plugin_class"]
-                plugin_args = {}
-                if "args" in plugin:
-                    plugin_args = plugin["args"]
-                if not issubclass(plugin_class, BasePlugin):
-                    raise TypeError(f"{plugin_class} must inherit from {BasePlugin}")
-                instance = plugin_class(schema=self._schema, **plugin_args)
-                self._plugins.append(instance)
+        if not plugins:
+            return {}
+        discovered_plugins = {}
+        for _, module_name, _ in pkgutil.iter_modules(plugin_package.__path__):
+            try:
+                module = importlib.import_module(
+                    f"{plugin_package.__name__}.{module_name}"
+                )
+                for name, cls in module.__dict__.items():
+                    if (
+                        isinstance(cls, type)
+                        and issubclass(cls, ValidationPlugin)
+                        and cls.__name__ in plugins
+                    ):
+                        discovered_plugins[name] = cls(schema=self._schema)
+            except ImportError as err:
+                print(f"Error loading module '{module_name}': {err}")
+        return discovered_plugins
