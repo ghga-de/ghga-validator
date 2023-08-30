@@ -16,15 +16,13 @@
 
 """Validator of data against a given LinkML schema."""
 
-import importlib
-import pkgutil
 from typing import Dict, List, Optional
 
 from linkml_runtime.utils.schemaview import SchemaView
 
-import ghga_validator.plugins as plugin_package
 from ghga_validator.core.models import ValidationReport
 from ghga_validator.plugins.core_plugin import ValidationPlugin
+from ghga_validator.plugins.utils import discover_plugins
 
 
 class Validator:
@@ -39,7 +37,9 @@ class Validator:
 
     def __init__(self, schema: SchemaView, plugins: Optional[List[str]]) -> None:
         self._schema = schema
-        self._plugins = self.load_plugins(plugins)
+        self._plugins: List[ValidationPlugin] = []
+        if plugins:
+            self.load_plugins(plugins)
 
     def validate(self, data: Dict, target_class: str) -> ValidationReport:
         """
@@ -55,7 +55,7 @@ class Validator:
         """
         validation_results = []
         valid = True
-        for _, plugin in self._plugins.items():
+        for plugin in self._plugins:
             validation_result = plugin.validate(data=data, target_class=target_class)
             validation_results.append(validation_result)
             if not validation_result.valid:
@@ -68,25 +68,14 @@ class Validator:
         )
         return validation_report
 
-    def load_plugins(self, plugins: Optional[List[str]]) -> Dict:
+    def load_plugins(self, plugins: List[str]):
         """
         Load the list of plugins
         """
-        if not plugins:
-            return {}
-        discovered_plugins = {}
-        for _, module_name, _ in pkgutil.iter_modules(plugin_package.__path__):
-            try:
-                module = importlib.import_module(
-                    f"{plugin_package.__name__}.{module_name}"
-                )
-                for name, cls in module.__dict__.items():
-                    if (
-                        isinstance(cls, type)
-                        and issubclass(cls, ValidationPlugin)
-                        and cls.__name__ in plugins
-                    ):
-                        discovered_plugins[name] = cls(schema=self._schema)
-            except ImportError as err:
-                print(f"Error loading module '{module_name}': {err}")
-        return discovered_plugins
+        discovered_plugins = discover_plugins(ValidationPlugin)
+        for plugin_name in plugins:
+            if plugin_name in discovered_plugins:
+                plugin_class = discovered_plugins[plugin_name]
+                self._plugins.append(plugin_class(schema=self._schema))
+            else:
+                raise ModuleNotFoundError(f"Plugin '{plugin_name}' not found")
