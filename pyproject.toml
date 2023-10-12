@@ -26,7 +26,8 @@ classifiers = [
 ]
 dependencies = [
     "typer >= 0.7.0",
-    "linkml >= 1.5.7",
+    "pydantic >1.10.6, <2",
+    "linkml >= 1.5.7, <1.6.0",
     "linkml-validator >= 0.4.5"
 ]
 
