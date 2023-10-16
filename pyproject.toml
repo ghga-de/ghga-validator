@@ -25,10 +25,11 @@ classifiers = [
     "Intended Audience :: Developers",
 ]
 dependencies = [
-    "typer >= 0.7.0",
+    "typer ~= 0.7.0",
     "pydantic >1.10.6, <2",
-    "linkml >= 1.5.7, <1.6.0",
-    "linkml-validator >= 0.4.5"
+    "linkml==1.6.1",
+    "linkml-runtime==1.6.0",
+    "linkml-validator==0.4.5"
 ]
 
 [project.urls]
