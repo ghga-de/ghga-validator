@@ -52,7 +52,7 @@ class ValidationResult(BaseModel):
 
     plugin_name: str
     valid: bool
-    validation_messages: Optional[list[ValidationMessage]] = None
+    validation_messages: list[ValidationMessage] = []
 
 
 class ValidationReport(BaseModel):

@@ -16,13 +16,10 @@
 
 """Validator of data against a given LinkML schema."""
 
-from typing import Optional
-
 from linkml_runtime.utils.schemaview import SchemaView
 
 from ghga_validator.core.models import ValidationReport
-from ghga_validator.plugins.core_plugin import ValidationPlugin
-from ghga_validator.plugins.utils import discover_plugins
+from ghga_validator.plugins.base_plugin import ValidationPlugin
 
 
 class Validator:
@@ -35,11 +32,9 @@ class Validator:
 
     """
 
-    def __init__(self, schema: SchemaView, plugins: Optional[list[str]]) -> None:
+    def __init__(self, schema: SchemaView, plugins: list[ValidationPlugin]) -> None:
         self._schema = schema
-        self._plugins: list[ValidationPlugin] = []
-        if plugins:
-            self.load_plugins(plugins)
+        self._plugins = plugins
 
     def validate(self, data: dict, target_class: str) -> ValidationReport:
         """
@@ -53,27 +48,15 @@ class Validator:
             ValidationReport: A validation report that summarizes the validation
 
         """
-        validation_results = []
-        valid = True
-        for plugin in self._plugins:
-            validation_result = plugin.validate(data=data, target_class=target_class)
-            validation_results.append(validation_result)
-            if not validation_result.valid:
-                valid = False
+        validation_results = [
+            plugin.validate(data=data, target_class=target_class)
+            for plugin in self._plugins
+        ]
+        all_valid = all(result.valid for result in validation_results)
         validation_report = ValidationReport(
             object=data,
             type=target_class,
-            valid=valid,
+            valid=all_valid,
             validation_results=validation_results,
         )
         return validation_report
-
-    def load_plugins(self, plugins: list[str]):
-        """Load the list of plugins"""
-        discovered_plugins = discover_plugins(ValidationPlugin)
-        for plugin_name in plugins:
-            if plugin_name in discovered_plugins:
-                plugin_class = discovered_plugins[plugin_name]
-                self._plugins.append(plugin_class(schema=self._schema))
-            else:
-                raise ModuleNotFoundError(f"Plugin '{plugin_name}' not found")

@@ -26,6 +26,8 @@ from linkml_runtime.utils.schemaview import SchemaView
 
 from ghga_validator.core.models import ValidationReport
 from ghga_validator.core.validator import Validator
+from ghga_validator.plugins.base_plugin import ValidationPlugin
+from ghga_validator.plugins.utils import discover_plugins
 from ghga_validator.schema_utils import get_target_class
 
 cli = typer.Typer()
@@ -55,7 +57,7 @@ def validate_json_file(
         schema_view,
         target_class=target_class,
         data=submission_json,
-        plugins=DEFAULT_PLUGINS,
+        plugins=load_plugins(DEFAULT_PLUGINS, schema_view),
     )
     if validation_report.valid:
         default_validation_results = validation_report.validation_results
@@ -63,7 +65,7 @@ def validate_json_file(
             schema_view,
             target_class=target_class,
             data=submission_json,
-            plugins=VALIDATION_PLUGINS,
+            plugins=load_plugins(VALIDATION_PLUGINS, schema_view),
         )
         validation_report.validation_results = (
             default_validation_results + validation_report.validation_results
@@ -102,6 +104,19 @@ def validate(
     validator = Validator(schema=schema, plugins=plugins)
     report = validator.validate(data, target_class)
     return report
+
+
+def load_plugins(plugin_types: list[str], schema: SchemaView) -> list[ValidationPlugin]:
+    """Load the list of plugins"""
+    plugin_list = []
+    discovered_plugins = discover_plugins(ValidationPlugin)
+    for plugin_name in plugin_types:
+        if plugin_name in discovered_plugins:
+            plugin_class = discovered_plugins[plugin_name]
+            plugin_list.append(plugin_class(schema=schema))
+        else:
+            raise ModuleNotFoundError(f"Plugin '{plugin_name}' not found")
+    return plugin_list
 
 
 @cli.command()

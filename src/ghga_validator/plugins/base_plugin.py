@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-"""Core Class for Validation Plugins"""
+"""Base Class for Validation Plugins"""
 
 from abc import ABC, abstractmethod
 
