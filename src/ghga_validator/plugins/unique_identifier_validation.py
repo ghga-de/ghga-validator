@@ -15,8 +15,6 @@
 
 """Plugin for validating the identifier uniqueness"""
 
-from typing import Dict, List, Tuple
-
 from ghga_validator.core.models import ValidationMessage, ValidationResult
 from ghga_validator.linkml.object_iterator import ObjectIterator
 from ghga_validator.plugins.core_plugin import ValidationPlugin
@@ -31,7 +29,7 @@ class UniqueIdentifierValidationPlugin(ValidationPlugin):
 
     NAME = "UniqueIdentifierValidationPlugin"
 
-    def validate(self, data: Dict, target_class: str) -> ValidationResult:
+    def validate(self, data: dict, target_class: str) -> ValidationResult:
         """
         Perform validation on an object.
 
@@ -53,9 +51,9 @@ class UniqueIdentifierValidationPlugin(ValidationPlugin):
 
     def validate_unique_fields(
         self,
-        object_to_validate: Dict,
+        object_to_validate: dict,
         target_class: str,
-    ) -> List[ValidationMessage]:
+    ) -> list[ValidationMessage]:
         """
         Validate non inlined reference fields in a JSON object
 
@@ -69,7 +67,7 @@ class UniqueIdentifierValidationPlugin(ValidationPlugin):
         """
         messages = []
 
-        seen_ids: Dict[Tuple, List] = {}
+        seen_ids: dict[tuple, list] = {}
         for class_name, identifier, data, path in ObjectIterator(
             self.schema, object_to_validate, target_class
         ):
@@ -85,5 +83,5 @@ class UniqueIdentifierValidationPlugin(ValidationPlugin):
                 )
                 messages.append(message)
             else:
-                seen_ids[class_name, identifier] = path + [id_slot_name]
+                seen_ids[class_name, identifier] = [*path, id_slot_name]
         return messages

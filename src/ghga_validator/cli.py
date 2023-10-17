@@ -18,7 +18,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 import typer
 import yaml
@@ -46,7 +46,7 @@ def validate_json_file(
         schema: The URL or path to YAML file
         report: The URL or path to store the validation results
     """
-    with open(file, "r", encoding="utf8") as json_file:
+    with open(file, encoding="utf8") as json_file:
         submission_json = yaml.safe_load(json_file)
     if submission_json is None:
         raise EOFError(f"<{file}> is empty! Nothing to validate!")
@@ -88,8 +88,8 @@ def validate_json_file(
 def validate(
     schema: SchemaView,
     target_class: str,
-    data: Dict,
-    plugins: List,
+    data: dict,
+    plugins: list,
 ) -> ValidationReport:
     """
     Validate an object of a particular type against a given schema.

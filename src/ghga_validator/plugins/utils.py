@@ -18,15 +18,12 @@
 
 import importlib
 import pkgutil
-from typing import Dict
 
 import ghga_validator.plugins as plugin_package
 
 
-def discover_plugins(plugin_type) -> Dict:
-    """
-    Discover all plugins of a type
-    """
+def discover_plugins(plugin_type) -> dict:
+    """Discover all plugins of a type"""
     discovered_plugins = {}
     for _, module_name, _ in pkgutil.iter_modules(plugin_package.__path__):
         try:

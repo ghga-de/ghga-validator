@@ -17,7 +17,7 @@
 
 from collections import defaultdict
 from numbers import Number
-from typing import Dict, List, Union
+from typing import Union
 
 from ghga_validator.core.models import ValidationMessage, ValidationResult
 from ghga_validator.linkml.object_iterator import ObjectIterator
@@ -35,7 +35,7 @@ class RefValidationPlugin(ValidationPlugin):
 
     NAME = "RefValidationPlugin"
 
-    def validate(self, data: Dict, target_class: str) -> ValidationResult:
+    def validate(self, data: dict, target_class: str) -> ValidationResult:
         """
         Perform validation on an object.
 
@@ -57,7 +57,7 @@ class RefValidationPlugin(ValidationPlugin):
         )
         return result
 
-    def get_all_class_ids(self, obj: Dict, target_class: str) -> Dict[str, List[str]]:
+    def get_all_class_ids(self, obj: dict, target_class: str) -> dict[str, list[str]]:
         """Get all lists of identifies of inlined objects organized by class name
 
         Args:
@@ -79,10 +79,10 @@ class RefValidationPlugin(ValidationPlugin):
 
     def validate_refs(
         self,
-        object_to_validate: Dict,
+        object_to_validate: dict,
         target_class: str,
-        all_class_ids: Dict,
-    ) -> List[ValidationMessage]:
+        all_class_ids: dict,
+    ) -> list[ValidationMessage]:
         """
         Validate non inlined reference fields in the JSON data
 
@@ -119,9 +119,9 @@ class RefValidationPlugin(ValidationPlugin):
 
     def find_missing_refs(
         self,
-        ref_value: Union[List[Union[Number, str]], Union[Number, str]],
-        id_list: List,
-    ) -> List:
+        ref_value: Union[list[Union[Number, str]], Union[Number, str]],
+        id_list: list,
+    ) -> list:
         """
         Search for missing references
 

@@ -18,7 +18,7 @@ jobs:
 
       - name: Verify Package Version vs Tag Version
         run: |
-          PKG_VER="$(python setup.py -V)"
+          PKG_VER="$(grep -oP 'version = \"\K[^\"]+' pyproject.toml)"
           TAG_VER="${GITHUB_REF##*/}"
           echo "Package version is $PKG_VER" >&2
           echo "Tag version is $TAG_VER" >&2
@@ -61,12 +61,12 @@ jobs:
           pytest .
 
       - name: Publish distribution package to PyPI (test)
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository_url: https://test.pypi.org/legacy/
+          repository-url: https://test.pypi.org/legacy/
 
       - name: Publish distribution package to PyPI (production)
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}

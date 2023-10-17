@@ -16,7 +16,6 @@
 """Plugin for structural validation of a JSON object"""
 
 import json
-from typing import Dict
 
 import jsonschema
 from linkml.generators.jsonschemagen import JsonSchemaGenerator
@@ -28,14 +27,12 @@ from ghga_validator.utils import path_as_string
 
 
 class GHGAJsonSchemaValidationPlugin(ValidationPlugin):
-    """
-    Plugin for structural validation of a JSON object.
-    """
+    """Plugin for structural validation of a JSON object."""
 
     NAME = "GHGAJsonSchemaValidationPlugin"
 
     def validate(
-        self, data: Dict, target_class: ClassDefinitionName
+        self, data: dict, target_class: ClassDefinitionName
     ) -> ValidationResult:
         """
         Perform validation on an object.
@@ -77,10 +74,8 @@ class GHGAJsonSchemaValidationPlugin(ValidationPlugin):
         )
         return result
 
-    def jsonschema_from_linkml(self, target_class: ClassDefinitionName) -> Dict:
-        """
-        Generates JSON schema from a LinkML schema
-        """
+    def jsonschema_from_linkml(self, target_class: ClassDefinitionName) -> dict:
+        """Generates JSON schema from a LinkML schema"""
         json_schema_as_string = JsonSchemaGenerator(
             schema=self.schema.schema, top_class=target_class
         ).serialize()

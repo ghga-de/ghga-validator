@@ -16,7 +16,7 @@
 
 """Validator of data against a given LinkML schema."""
 
-from typing import Dict, List, Optional
+from typing import Optional
 
 from linkml_runtime.utils.schemaview import SchemaView
 
@@ -35,13 +35,13 @@ class Validator:
 
     """
 
-    def __init__(self, schema: SchemaView, plugins: Optional[List[str]]) -> None:
+    def __init__(self, schema: SchemaView, plugins: Optional[list[str]]) -> None:
         self._schema = schema
-        self._plugins: List[ValidationPlugin] = []
+        self._plugins: list[ValidationPlugin] = []
         if plugins:
             self.load_plugins(plugins)
 
-    def validate(self, data: Dict, target_class: str) -> ValidationReport:
+    def validate(self, data: dict, target_class: str) -> ValidationReport:
         """
         Validate an object.
 
@@ -68,10 +68,8 @@ class Validator:
         )
         return validation_report
 
-    def load_plugins(self, plugins: List[str]):
-        """
-        Load the list of plugins
-        """
+    def load_plugins(self, plugins: list[str]):
+        """Load the list of plugins"""
         discovered_plugins = discover_plugins(ValidationPlugin)
         for plugin_name in plugins:
             if plugin_name in discovered_plugins:
