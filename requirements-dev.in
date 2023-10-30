@@ -1,5 +1,5 @@
 # requirements for development and testing this service
 
--r requirements-dev-common.txt
+-r requirements-dev-common.in
 
 # additional requirements can be listed here
