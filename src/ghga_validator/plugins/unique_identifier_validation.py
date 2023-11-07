@@ -15,42 +15,33 @@
 
 """Plugin for validating the identifier uniqueness"""
 
-from typing import Dict, List, Tuple
-
 from ghga_validator.core.models import ValidationMessage, ValidationResult
 from ghga_validator.linkml.object_iterator import ObjectIterator
-from ghga_validator.plugins.base import BasePlugin
+from ghga_validator.plugins.base_plugin import ValidationPlugin
 from ghga_validator.utils import path_as_string
 
 
-class UniqueIdentifierValidationPlugin(BasePlugin):
+class UniqueIdentifierValidationPlugin(ValidationPlugin):
     """
     Plugin to check whether the fields defined as identifier/unique key
     are unique for a class.
-
-    Args:
-        schema: Path or URL to schema YAML
-        kwargs: Additional arguments that are used to instantiate the plugin
-
     """
 
     NAME = "UniqueIdentifierValidationPlugin"
 
-    def process(self, obj: Dict, **kwargs) -> ValidationResult:
+    def validate(self, data: dict, target_class: str) -> ValidationResult:
         """
         Perform validation on an object.
 
         Args:
-            obj: The object to validate
-            kwargs: Additional arguments that are used for processing
+            data: The JSON object to validate
+            target_class: class name for root class
 
         Returns:
             ValidationResult: A validation result that describes the outcome of validation
 
         """
-        target_class = kwargs["target_class"]
-
-        messages = self.validate_unique_fields(obj, target_class)
+        messages = self.validate_unique_fields(data, target_class)
         valid = len(messages) == 0
 
         result = ValidationResult(
@@ -60,9 +51,9 @@ class UniqueIdentifierValidationPlugin(BasePlugin):
 
     def validate_unique_fields(
         self,
-        object_to_validate: Dict,
+        object_to_validate: dict,
         target_class: str,
-    ) -> List[ValidationMessage]:
+    ) -> list[ValidationMessage]:
         """
         Validate non inlined reference fields in a JSON object
 
@@ -76,7 +67,7 @@ class UniqueIdentifierValidationPlugin(BasePlugin):
         """
         messages = []
 
-        seen_ids: Dict[Tuple, List] = {}
+        seen_ids: dict[tuple, list] = {}
         for class_name, identifier, data, path in ObjectIterator(
             self.schema, object_to_validate, target_class
         ):
@@ -92,5 +83,5 @@ class UniqueIdentifierValidationPlugin(BasePlugin):
                 )
                 messages.append(message)
             else:
-                seen_ids[class_name, identifier] = path + [id_slot_name]
+                seen_ids[class_name, identifier] = [*path, id_slot_name]
         return messages

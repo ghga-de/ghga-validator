@@ -12,12 +12,28 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-"""The package provides the functionality required for the ghga_validator
-command line utility."""
+"""Base Class for Validation Plugins"""
 
-__version__ = "1.0.0"
+from abc import ABC, abstractmethod
 
-from pathlib import Path
+from ghga_validator.core.models import ValidationResult
 
-BASE_DIR = Path(__file__).parent.parent.resolve()
+
+class ValidationPlugin(ABC):
+    """An abstract class for validation plugins"""
+
+    def __init__(self, schema):
+        """
+        Initialize the plugin with the given schema.
+
+        Args:
+            schema: schema representation
+
+        """
+        self.schema = schema
+
+    @abstractmethod
+    def validate(self, data, target_class) -> ValidationResult:
+        """Validate input data against the schema starting with the target class"""

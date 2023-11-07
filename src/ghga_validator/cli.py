@@ -18,7 +18,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 import typer
 import yaml
@@ -26,21 +26,15 @@ from linkml_runtime.utils.schemaview import SchemaView
 
 from ghga_validator.core.models import ValidationReport
 from ghga_validator.core.validator import Validator
-from ghga_validator.plugins import (
-    GHGAJsonSchemaValidationPlugin,
-    RefValidationPlugin,
-    UniqueIdentifierValidationPlugin,
-)
+from ghga_validator.plugins.base_plugin import ValidationPlugin
+from ghga_validator.plugins.utils import discover_plugins
 from ghga_validator.schema_utils import get_target_class
 
 cli = typer.Typer()
 
-DEFAULT_PLUGINS = [{"plugin_class": GHGAJsonSchemaValidationPlugin, "plugin_args": {}}]
+DEFAULT_PLUGINS = ["GHGAJsonSchemaValidationPlugin"]
 
-VALIDATION_PLUGINS = [
-    {"plugin_class": RefValidationPlugin, "plugin_args": {}},
-    {"plugin_class": UniqueIdentifierValidationPlugin, "plugin_args": {}},
-]
+VALIDATION_PLUGINS = ["RefValidationPlugin", "UniqueIdentifierValidationPlugin"]
 
 
 def validate_json_file(
@@ -54,7 +48,7 @@ def validate_json_file(
         schema: The URL or path to YAML file
         report: The URL or path to store the validation results
     """
-    with open(file, "r", encoding="utf8") as json_file:
+    with open(file, encoding="utf8") as json_file:
         submission_json = yaml.safe_load(json_file)
     if submission_json is None:
         raise EOFError(f"<{file}> is empty! Nothing to validate!")
@@ -62,16 +56,16 @@ def validate_json_file(
     validation_report = validate(
         schema_view,
         target_class=target_class,
-        obj=submission_json,
-        plugins=DEFAULT_PLUGINS,
+        data=submission_json,
+        plugins=load_plugins(DEFAULT_PLUGINS, schema_view),
     )
     if validation_report.valid:
         default_validation_results = validation_report.validation_results
         validation_report = validate(
             schema_view,
             target_class=target_class,
-            obj=submission_json,
-            plugins=VALIDATION_PLUGINS,
+            data=submission_json,
+            plugins=load_plugins(VALIDATION_PLUGINS, schema_view),
         )
         validation_report.validation_results = (
             default_validation_results + validation_report.validation_results
@@ -80,9 +74,12 @@ def validate_json_file(
         typer.echo(
             "JSON schema validation failed. Subsequent validations skipped.", err=True
         )
+
     with open(report, "w", encoding="utf-8") as sub:
         json.dump(
-            validation_report.dict(exclude_unset=True, exclude_none=True),
+            validation_report.dict(
+                exclude={"object"}, exclude_unset=True, exclude_none=True
+            ),
             sub,
             ensure_ascii=False,
             indent=4,
@@ -93,20 +90,33 @@ def validate_json_file(
 def validate(
     schema: SchemaView,
     target_class: str,
-    obj: Dict,
-    plugins: List[Dict],
+    data: dict,
+    plugins: list,
 ) -> ValidationReport:
     """
     Validate an object of a particular type against a given schema.
     Args:
         schema: Virtual LinkML schema (SchemaView)
         target_class: The root class name
-        obj: The object to validate
-        plugins: Plugins for validation
+        data: The JSON object to validate
+        plugins: List of plugin class names for validation
     """
     validator = Validator(schema=schema, plugins=plugins)
-    report = validator.validate(obj, target_class, exclude_object=True)
+    report = validator.validate(data, target_class)
     return report
+
+
+def load_plugins(plugin_types: list[str], schema: SchemaView) -> list[ValidationPlugin]:
+    """Load the list of plugins"""
+    plugin_list = []
+    discovered_plugins = discover_plugins(ValidationPlugin)
+    for plugin_name in plugin_types:
+        if plugin_name in discovered_plugins:
+            plugin_class = discovered_plugins[plugin_name]
+            plugin_list.append(plugin_class(schema=schema))
+        else:
+            raise ModuleNotFoundError(f"Plugin '{plugin_name}' not found")
+    return plugin_list
 
 
 @cli.command()

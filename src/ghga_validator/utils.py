@@ -16,10 +16,8 @@
 
 """Utils"""
 
-from typing import List
 
-
-def path_as_string(error_path: List) -> str:
+def path_as_string(error_path: list) -> str:
     """Convert the path to the error in JSON to string format
     Args:
         error_path (List): path to the error in JSON

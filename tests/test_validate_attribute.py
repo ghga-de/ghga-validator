@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Test data validation when slots in linkml schema are defined with attributes"""
+
 import os
 
 from ghga_validator.cli import validate_json_file
@@ -28,6 +30,5 @@ def test_validate_attribute():
     target_class = "Submission"
 
     assert validate_json_file(file, schema, report, str(target_class)) is True
-
     if os.path.exists(report):
         os.remove(report)
