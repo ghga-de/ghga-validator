@@ -34,18 +34,18 @@ def test_object_iterator():
     schema = BASE_DIR / "schemas" / "minimal_model_parent.yaml"
     target_class = "ParentSubmission"
 
-    list1 = []
-    for elem in ObjectIterator(SchemaView(schema), data_json, target_class):
-        list1.append(elem)
+    list1 = [
+        elem for elem in ObjectIterator(SchemaView(schema), data_json, target_class)
+    ]
 
     # Example with the same object on the top level of JSON
     data_json2 = data_json["submissions"][0]
     schema = BASE_DIR / "schemas" / "minimal_model.yaml"
     target_class = "Submission"
 
-    list2 = []
-    for elem in ObjectIterator(SchemaView(schema), data_json2, target_class):
-        list2.append(elem)
+    list2 = [
+        elem for elem in ObjectIterator(SchemaView(schema), data_json2, target_class)
+    ]
 
     assert len(list2) == 2
 
