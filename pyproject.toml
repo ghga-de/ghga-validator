@@ -38,7 +38,7 @@ Repository = "https://github.com/ghga-de/ghga_validator"
 
 [project.scripts]
 
-ghga_validator = "ghga_validator.__main__:run"
+ghga-validator = "ghga_validator.__main__:run"
 
 [tool.setuptools.packages.find]
 where = ["src"]
