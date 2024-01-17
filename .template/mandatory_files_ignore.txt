@@ -3,5 +3,6 @@
 
 config_schema.json
 example_config.yaml
-.github/workflows/check_openapi_spec.yaml
+
+
 scripts/script_utils/fastapi_app_location.py
