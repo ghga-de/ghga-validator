@@ -23,7 +23,7 @@ classifiers = [
 ]
 name = "ghga_validator"
 version = "1.1.1"
-description = "GHGA Validator - a short description"
+description = "GHGA Validator - A Python library and command line utility to validate metadata"
 dependencies = [
     "typer >= 0.9.0",
     "pydantic >=2, <3",
