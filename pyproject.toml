@@ -40,7 +40,7 @@ text = "Apache 2.0"
 Repository = "https://github.com/ghga-de/ghga-validator"
 
 [project.scripts]
-my-microservice = "ghga_validator.__main__:run"
+ghga-validator = "ghga_validator.__main__:run"
 
 [tool.setuptools.packages.find]
 where = [
