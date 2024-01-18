@@ -3,7 +3,7 @@
 
 # Ghga Validator
 
-GHGA Validator - a short description
+GHGA Validator - A Python library and command line utility to validate metadata
 
 ## Description
 
