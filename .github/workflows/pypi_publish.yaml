@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Publish package
-        uses: ghga-de/gh-action-pypi@v1
+        uses: ghga-de/gh-action-pypi@v0
         with:
           tag: ${{ github.event.release.tag_name }}
           test_pypi_api_token: ${{ secrets.TEST_PYPI_API_TOKEN }}
