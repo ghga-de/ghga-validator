@@ -9,6 +9,8 @@ jobs:
     name: Publish tagged release on PyPI
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+
       - name: Publish package
         uses: ghga-de/gh-action-pypi@v0
         with:
