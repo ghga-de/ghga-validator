@@ -18,7 +18,7 @@
 import yaml
 from linkml_runtime.utils.schemaview import SchemaView
 
-from ghga_validator.linkml.object_iterator import ObjectIterator
+from ghga_validator.my_linkml.object_iterator import ObjectIterator
 
 from .fixtures.utils import BASE_DIR
 
