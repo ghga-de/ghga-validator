@@ -24,7 +24,7 @@ from .fixtures.utils import BASE_DIR
 
 def test_validate_slots():
     """Test data validation (using all validation plugins)"""
-    schema = BASE_DIR / "schemas" / "advanced_model.yaml"
+    schema = BASE_DIR / "schemas" / "advance_model.yaml"
     file = BASE_DIR / "data" / "example_data.json"
     report = BASE_DIR / "tmp.json"
     target_class = "Submission"
