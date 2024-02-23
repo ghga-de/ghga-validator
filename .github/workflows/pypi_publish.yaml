@@ -14,12 +14,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Validate Version Tag
-        uses: gh-action-pypi/verify-version-tag@v1
+        uses: ghga-de/gh-action-pypi/verify-version-tag@v1
         with:
           tag: "1.2.0"
 
       - name: Build Python Package
-        uses: gh-action-pypi/build-python-package@v1
+        uses: ghga-de/gh-action-pypi/build-python-package@v1
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
@@ -41,7 +41,7 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Test the test-package action
-        uses: gh-action-pypi/test-package@v1
+        uses: ghga-de/gh-action-pypi/test-package@v1
         with:
           python_version: ${{ matrix.python-version }}
 
