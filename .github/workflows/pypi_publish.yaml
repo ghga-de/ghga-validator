@@ -57,7 +57,7 @@ jobs:
         uses: actions/download-artifact@v4
 
       - name: Test the publish-package action
-        uses: ghga-de/gh-action-pypi/publish-package@v1.0.0
+        uses: ghga-de/gh-action-pypi/publish-package@41f5c28ad747ce695f1aa2fec5a155d4a59b4b9a
         with:
           test_pypi_api_token: ${{ secrets.TEST_PYPI_API_TOKEN }}
           pypi_api_token: ${{ secrets.PYPI_API_TOKEN }}
