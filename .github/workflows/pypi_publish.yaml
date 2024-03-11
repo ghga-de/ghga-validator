@@ -61,4 +61,4 @@ jobs:
         with:
           test_pypi_api_token: ${{ secrets.TEST_PYPI_API_TOKEN }}
           pypi_api_token: ${{ secrets.PYPI_API_TOKEN }}
-          debug_mode: "true"
+          debug_mode: 'true'
