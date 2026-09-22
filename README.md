@@ -1,3 +1,5 @@
+> [!IMPORTANT]
+> **GHGA Validator has moved.** Development continues in the GHGA monorepo at [ghga-de/ghga](https://github.com/ghga-de/ghga), under `tools/ghga-validator`. This repository is being archived and will become read-only; please open issues and pull requests in the monorepo. The `ghga-validator` package on PyPI is unaffected; future releases are published from the monorepo.
 
 [![tests](https://github.com/ghga-de/ghga-validator/actions/workflows/unit_and_int_tests.yaml/badge.svg)](https://github.com/ghga-de/ghga-validator/actions/workflows/unit_and_int_tests.yaml)
 [![Coverage Status](https://coveralls.io/repos/github/ghga-de/ghga-validator/badge.svg?branch=main)](https://coveralls.io/github/ghga-de/ghga-validator?branch=main)
